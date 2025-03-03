@@ -7,14 +7,14 @@ function stateManager.register(name, state)
     states[name] = state
 end
 
-function stateManager.changeState(newState)
+function stateManager.changeState(newState, params)
     print("Changing state to: " .. newState) -- 调试输出
     if currentState and states[currentState].exit then
         states[currentState].exit()
     end
     currentState = newState
     if states[currentState].load then
-        states[currentState].load()
+        states[currentState].load(params)
     end
 end
 

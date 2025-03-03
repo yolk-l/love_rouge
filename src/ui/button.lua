@@ -12,12 +12,19 @@ function button.new(text, x, y, width, height, onClick)
 end
 
 function button:update(dt)
-    -- Update logic here
+    -- 更新逻辑
 end
 
 function button:draw()
+    -- 绘制按钮背景
+    love.graphics.setColor(0.4, 0.4, 0.4) -- 灰色背景
+    love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+    love.graphics.setColor(1, 1, 1) -- 白色边框
     love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
-    love.graphics.print(self.text, self.x + 10, self.y + 10)
+
+    -- 绘制按钮文字
+    love.graphics.setColor(1, 1, 1) -- 白色文字
+    love.graphics.print(self.text, self.x + 10, self.y + 15)
 end
 
 function button:mousepressed(x, y, button)
