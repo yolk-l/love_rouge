@@ -9,6 +9,20 @@ end
 
 function stateManager.changeState(newState, params)
     print("Changing state to: " .. newState) -- 调试输出
+    
+    -- 懒加载状态
+    if not states[newState] then
+        if newState == "battle" then
+            states.battle = require "src.states.battle.battle"
+        elseif newState == "map" then
+            states.map = require "src.states.map"
+        elseif newState == "game_over" then
+            states.game_over = require "src.states.game_over"
+        elseif newState == "start" then
+            states.start = require "src.states.start"
+        end
+    end
+    
     if currentState and states[currentState].exit then
         states[currentState].exit()
     end

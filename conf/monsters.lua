@@ -1,26 +1,174 @@
-return {
+local monsters = {
+    -- Normal monsters
     normal = {
-        { name = "Goblin", health = 50, attack = 10 },
-        { name = "Skeleton", health = 60, attack = 12 },
-        { name = "Slime", health = 40, attack = 8 },
-        { name = "Bat", health = 30, attack = 6 },
-        { name = "Spider", health = 55, attack = 11 },
-        { name = "Rat", health = 35, attack = 7 },
-        { name = "Zombie", health = 65, attack = 13 },
-        { name = "Wolf", health = 45, attack = 9 },
-        { name = "Ghost", health = 70, attack = 14 },
-        { name = "Orc", health = 80, attack = 15 }
+        {
+            name = "Small Slime",
+            health = 30,
+            maxHealth = 30,
+            attack = 5,
+            intents = {
+                {
+                    name = "Attack",
+                    description = "Deal 5 damage",
+                    type = "attack",
+                    value = 5,
+                    trigger = "turn_start",
+                    priority = 1
+                },
+                {
+                    name = "Split",
+                    description = "Heal 5 HP",
+                    type = "heal",
+                    value = 5,
+                    trigger = "damage_taken",
+                    triggerValue = 15,
+                    priority = 2
+                }
+            }
+        },
+        {
+            name = "Goblin Warrior",
+            health = 40,
+            maxHealth = 40,
+            attack = 7,
+            intents = {
+                {
+                    name = "Attack",
+                    description = "Deal 7 damage",
+                    type = "attack",
+                    value = 7,
+                    trigger = "turn_start",
+                    priority = 1
+                },
+                {
+                    name = "Defensive Stance",
+                    description = "Gain 5 block",
+                    type = "shield",
+                    value = 5,
+                    trigger = "cards_generated",
+                    triggerValue = 3,
+                    priority = 2
+                }
+            }
+        }
     },
+    -- Elite monsters
     elite = {
-        { name = "Elite Goblin", health = 100, attack = 20 },
-        { name = "Elite Skeleton", health = 120, attack = 24 },
-        { name = "Elite Slime", health = 80, attack = 16 },
-        { name = "Elite Bat", health = 60, attack = 12 },
-        { name = "Elite Spider", health = 110, attack = 22 }
+        {
+            name = "Elite Slime King",
+            health = 60,
+            maxHealth = 60,
+            attack = 8,
+            intents = {
+                {
+                    name = "Strong Attack",
+                    description = "Deal 8 damage",
+                    type = "attack",
+                    value = 8,
+                    trigger = "turn_start",
+                    priority = 1
+                },
+                {
+                    name = "Split",
+                    description = "Heal 10 HP",
+                    type = "heal",
+                    value = 10,
+                    trigger = "damage_taken",
+                    triggerValue = 20,
+                    priority = 2
+                },
+                {
+                    name = "Shield",
+                    description = "Gain 8 block",
+                    type = "shield",
+                    value = 8,
+                    trigger = "cards_generated",
+                    triggerValue = 4,
+                    priority = 3
+                }
+            }
+        },
+        {
+            name = "Elite Goblin King",
+            health = 70,
+            maxHealth = 70,
+            attack = 10,
+            intents = {
+                {
+                    name = "Strong Attack",
+                    description = "Deal 10 damage",
+                    type = "attack",
+                    value = 10,
+                    trigger = "turn_start",
+                    priority = 1
+                },
+                {
+                    name = "Defensive Stance",
+                    description = "Gain 10 block",
+                    type = "shield",
+                    value = 10,
+                    trigger = "cards_generated",
+                    triggerValue = 3,
+                    priority = 2
+                },
+                {
+                    name = "Rage",
+                    description = "Increase attack by 5",
+                    type = "buff_attack",
+                    value = 5,
+                    trigger = "damage_taken",
+                    triggerValue = 25,
+                    priority = 3
+                }
+            }
+        }
     },
+    -- Boss monsters
     boss = {
-        { name = "Boss Dragon", health = 300, attack = 50 },
-        { name = "Boss Demon", health = 250, attack = 45 },
-        { name = "Boss Giant", health = 350, attack = 55 }
+        {
+            name = "Slime Emperor",
+            health = 100,
+            maxHealth = 100,
+            attack = 12,
+            intents = {
+                {
+                    name = "Strong Attack",
+                    description = "Deal 12 damage",
+                    type = "attack",
+                    value = 12,
+                    trigger = "turn_start",
+                    priority = 1
+                },
+                {
+                    name = "Split",
+                    description = "Heal 15 HP",
+                    type = "heal",
+                    value = 15,
+                    trigger = "damage_taken",
+                    triggerValue = 30,
+                    priority = 2
+                },
+                {
+                    name = "Shield",
+                    description = "Gain 15 block",
+                    type = "shield",
+                    value = 15,
+                    trigger = "cards_generated",
+                    triggerValue = 5,
+                    priority = 3
+                },
+                {
+                    name = "Rage",
+                    description = "Increase attack by 8",
+                    type = "buff_attack",
+                    value = 8,
+                    trigger = "damage_taken",
+                    triggerValue = 50,
+                    priority = 4
+                }
+            }
+        }
     }
 }
+
+return monsters

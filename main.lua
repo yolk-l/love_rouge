@@ -1,12 +1,7 @@
 local stateManager = require "src.utils.state_manager"
-local startState = require "src.states.start"
-local mapState = require "src.states.map"
-local battleState = require "src.states.battle"
 
 function love.load()
-    stateManager.register("start", startState)
-    stateManager.register("map", mapState)
-    stateManager.register("battle", battleState)
+    -- 使用懒加载方式加载初始状态
     stateManager.changeState("start")
 end
 

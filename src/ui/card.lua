@@ -11,14 +11,21 @@ function card.draw(cardData, x, y)
     love.graphics.setColor(0, 0, 0)
     love.graphics.print(cardData.name, x + 10, y + 10)
 
+    -- 显示卡牌类型
+    love.graphics.print("Type: " .. cardData.type, x + 10, y + 30)
+
     -- 显示卡牌效果
-    if cardData.damage then
-        love.graphics.print("Damage: " .. cardData.damage, x + 10, y + 30)
+    if cardData.baseDamage then
+        love.graphics.print("Damage: " .. cardData.baseDamage, x + 10, y + 50)
     end
-    if cardData.block then
-        love.graphics.print("Block: " .. cardData.block, x + 10, y + 50)
+    if cardData.baseBlock then
+        love.graphics.print("Block: " .. cardData.baseBlock, x + 10, y + 70)
     end
-    love.graphics.print("Cost: " .. cardData.cost, x + 10, y + 70)
+
+    -- 显示卡牌描述
+    if cardData.description then
+        love.graphics.print(cardData.description, x + 10, y + 90)
+    end
 end
 
 return card
