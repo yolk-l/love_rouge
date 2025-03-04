@@ -12,8 +12,23 @@ local currentCardIndex = 0 -- 当前释放的卡牌索引
 local isReleasingCards = false -- 是否正在释放卡牌
 local cardReleaseTimer = 0 -- 卡牌释放计时器
 local flyingCards = {} -- 正在飞行的卡牌
+local battleType = "normal" -- 默认战斗类型
+
+-- 禁用按钮
+local function disableButtons()
+    generateCardButton.enabled = false
+    executeCardButton.enabled = false
+end
+
+-- 启用按钮
+local function enableButtons()
+    generateCardButton.enabled = true
+    executeCardButton.enabled = true
+end
 
 local function onGenerateCardClick()
+    if not generateCardButton.enabled or isReleasingCards then return end
+    
     -- 生成 5 张随机卡牌
     playerCards = {}
     for i = 1, 5 do
@@ -26,29 +41,57 @@ local function onGenerateCardClick()
 end
 
 local function onExecuteCardClick()
+    if not executeCardButton.enabled or isReleasingCards then return end
+    
     if #playerCards > 0 then
         isReleasingCards = true -- 开始释放卡牌
+        disableButtons() -- 禁用所有按钮
     else
         print("No cards to execute! Generate cards first.")
     end
 end
 
-local function load()
+local function load(params)
+    if not params then
+        error("Battle state requires parameters")
+        return
+    end
+    
+    if params.nodeType ~= "battle" then
+        error("Invalid node type for battle state: " .. tostring(params.nodeType))
+        return
+    end
+    
+    -- 获取战斗类型（normal/elite/boss）
+    battleType = params.battleType or "normal"
+    
+    -- 根据战斗类型选择怪物池
+    local monsterPool = monsters[battleType]
+    if not monsterPool then
+        print("Warning: Invalid battle type '" .. battleType .. "', falling back to normal")
+        monsterPool = monsters.normal
+    end
+    
     -- 初始化战斗
-    local monsterData = monsters.normal[math.random(1, #monsters.normal)] -- 随机选择一个普通怪物
+    local monsterData = monsterPool[math.random(1, #monsterPool)]
     currentMonster = {
         name = monsterData.name,
-        health = monsterData.health, -- 使用配置中的血量
-        maxHealth = monsterData.health, -- 记录最大血量
-        attack = monsterData.attack
+        health = monsterData.health,
+        maxHealth = monsterData.health,
+        attack = monsterData.attack,
+        type = battleType -- 记录怪物类型
     }
+    
     generateCardButton = button.new("Generate Cards", 200, 500, 150, 50, onGenerateCardClick)
     executeCardButton = button.new("Execute Cards", 400, 500, 150, 50, onExecuteCardClick)
+    enableButtons() -- 确保按钮初始状态为启用
 end
 
 local function update(dt)
-    generateCardButton:update(dt)
-    executeCardButton:update(dt)
+    if not isReleasingCards then
+        generateCardButton:update(dt)
+        executeCardButton:update(dt)
+    end
 
     -- 更新卡牌释放逻辑
     if isReleasingCards then
@@ -62,13 +105,14 @@ local function update(dt)
                 table.insert(flyingCards, {
                     card = cardData,
                     startX = 100 + (currentCardIndex - 1) * 120,
-                    startY = 300, -- 卡牌起始位置上移
-                    targetX = 400, -- 怪物框的中心位置
-                    targetY = 150, -- 怪物框的中心位置
-                    progress = 0 -- 飞行进度
+                    startY = 300,
+                    targetX = 400,
+                    targetY = 150,
+                    progress = 0
                 })
             else
                 isReleasingCards = false -- 所有卡牌释放完毕
+                enableButtons() -- 重新启用按钮
             end
         end
     end
@@ -76,12 +120,16 @@ local function update(dt)
     -- 更新飞行卡牌
     for i = #flyingCards, 1, -1 do
         local flyingCard = flyingCards[i]
-        flyingCard.progress = flyingCard.progress + dt * 2 -- 控制飞行速度
+        flyingCard.progress = flyingCard.progress + dt * 2
         if flyingCard.progress >= 1 then
             -- 卡牌到达目标位置，应用效果
             if flyingCard.card.damage then
                 currentMonster.health = currentMonster.health - flyingCard.card.damage
-                print("Card " .. currentCardIndex .. " dealt " .. flyingCard.card.damage .. " damage!")
+                print(string.format("Card %d dealt %d damage to %s %s!", 
+                    currentCardIndex, 
+                    flyingCard.card.damage,
+                    currentMonster.type,
+                    currentMonster.name))
             end
             if currentMonster.health <= 0 then
                 print("Monster defeated!")
@@ -90,11 +138,15 @@ local function update(dt)
                 flyingCards = {}
                 currentCardIndex = 0
                 isReleasingCards = false
+                enableButtons()
                 -- 更新地图中当前战斗节点的状态
-                stateManager.changeState("map", { completeBattleNode = true })
+                stateManager.changeState("map", { 
+                    completeBattleNode = true,
+                    battleType = battleType -- 传递战斗类型回地图
+                })
                 return
             end
-            table.remove(flyingCards, i) -- 移除已到达的卡牌
+            table.remove(flyingCards, i)
         end
     end
 end
@@ -145,7 +197,7 @@ end
 
 local function draw()
     -- 绘制背景
-    love.graphics.setColor(0, 0, 0) -- 黑色背景
+    love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
     -- 绘制怪物展示框和血条
@@ -157,21 +209,28 @@ local function draw()
     -- 绘制飞行中的卡牌
     drawFlyingCards()
 
-    -- 绘制按钮
+    -- 绘制按钮（根据状态显示不同的外观）
+    if isReleasingCards then
+        love.graphics.setColor(0.5, 0.5, 0.5) -- 禁用状态显示灰色
+    else
+        love.graphics.setColor(1, 1, 1)
+    end
     generateCardButton:draw()
     executeCardButton:draw()
 end
 
 local function mousepressed(x, y, button)
+    if isReleasingCards then return end -- 如果正在释放卡牌，禁用所有鼠标操作
+    
     generateCardButton:mousepressed(x, y, button)
     executeCardButton:mousepressed(x, y, button)
 
     -- 检查是否点击了卡牌
     for i, cardData in ipairs(playerCards) do
         local cardX = 100 + (i - 1) * 120
-        local cardY = 300 -- 卡牌位置上移
+        local cardY = 300
         if x >= cardX and x <= cardX + 100 and y >= cardY and y <= cardY + 150 then
-            print("Clicked card: " .. cardData.name)
+            print(string.format("Clicked card: %s", cardData.name))
         end
     end
 end

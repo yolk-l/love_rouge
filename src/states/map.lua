@@ -11,11 +11,53 @@ local function generateMap()
     local nodesPerRow = 5 -- 每行最多 5 个节点
     local rowDirection = 1 -- 1 表示从左到右，-1 表示从右到左
     local currentX, currentY = startX, startY
+    local totalNodes = 15 -- 总节点数量
+    local battleCount = 0 -- 追踪战斗节点数量
+    local targetBattles = math.random(4, 8) -- 目标战斗节点数量
+    
+    -- 预定义固定战斗节点
+    local fixedBattles = {
+        [math.floor(totalNodes/3)] = "elite", -- 第一个精英
+        [math.floor(totalNodes*2/3)] = "elite", -- 第二个精英
+        [totalNodes] = "boss" -- 最后是boss
+    }
 
-    for i = 1, 20 do
-        local nodeType = i == 20 and "boss" or (math.random(1, 3)) -- 最后一个节点是boss
-        local nodeName = i == 20 and "Boss" or ("Node " .. i)
-        table.insert(map, node.new(currentX, currentY, nodeType, nodeName))
+    for i = 1, totalNodes do
+        local nodeType, battleType
+        
+        if fixedBattles[i] then
+            -- 处理固定战斗节点
+            nodeType = "battle"
+            battleType = fixedBattles[i]
+            battleCount = battleCount + 1
+        else
+            -- 计算剩余需要的战斗节点数量
+            local remainingNodes = totalNodes - i
+            local remainingNeededBattles = targetBattles - battleCount
+            
+            -- 计算生成战斗节点的概率
+            local battleChance = 0
+            if remainingNeededBattles > 0 then
+                battleChance = (remainingNeededBattles / remainingNodes) * 100
+            end
+            
+            -- 根据概率决定节点类型
+            if math.random(100) <= battleChance and battleCount < targetBattles then
+                nodeType = "battle"
+                battleType = "normal"
+                battleCount = battleCount + 1
+            else
+                -- 非战斗节点随机为商店或事件
+                nodeType = math.random(100) <= 50 and "shop" or "event"
+            end
+        end
+        
+        local nodeName = (nodeType == "battle" and battleType == "boss") and "Boss" or ("Node " .. i)
+        local newNode = node.new(currentX, currentY, nodeType, nodeName)
+        if nodeType == "battle" then
+            newNode.battleType = battleType
+        end
+        table.insert(map, newNode)
 
         -- 更新下一个节点的位置
         currentX = currentX + nodeSpacing * rowDirection
@@ -26,6 +68,8 @@ local function generateMap()
             currentX = currentX + nodeSpacing * rowDirection
         end
     end
+    
+    print(string.format("Generated map with %d nodes (%d battles)", #map, battleCount))
     return map
 end
 
@@ -91,12 +135,23 @@ local function mousepressed(x, y, button)
                     break
                 end
 
-                -- 如果节点是战斗节点且未完成，则进入战斗
-                if (node.type == 1 or node.type == "boss") and not node.completed then
-                    currentBattleNodeIndex = i -- 保存当前战斗节点的索引
-                    stateManager.changeState("battle") -- 进入战斗
-                elseif node.type ~= 1 and node.type ~= "boss" then
-                    node.completed = true -- 非战斗节点直接标记为完成
+                -- 根据节点类型执行不同操作
+                if not node.completed then
+                    if node.type == "battle" then
+                        currentBattleNodeIndex = i
+                        stateManager.changeState("battle", {
+                            nodeType = "battle",
+                            battleType = node.battleType
+                        })
+                    elseif node.type == "shop" then
+                        print("Entering shop...")
+                        -- TODO: 实现商店逻辑
+                        node.completed = true
+                    elseif node.type == "event" then
+                        print("Triggering event...")
+                        -- TODO: 实现事件逻辑
+                        node.completed = true
+                    end
                 end
                 break
             end
@@ -109,5 +164,5 @@ return {
     update = update,
     draw = draw,
     mousepressed = mousepressed,
-    completeCurrentBattleNode = completeCurrentBattleNode -- 暴露给其他模块使用
+    completeCurrentBattleNode = completeCurrentBattleNode
 }
