@@ -13,7 +13,6 @@ end
 function node:draw(offsetX, offsetY)
     -- 设置节点颜色
     local color = {1, 1, 1} -- 默认白色
-    
     if self.completed then
         color = {0.5, 0.5, 0.5} -- 已完成节点为灰色
     else

@@ -1,6 +1,6 @@
 local button = {}
 
-function button.new(text, x, y, width, height, onClick)
+function button.new(text, x, y, width, height, onClick, ...)
     local self = setmetatable({}, { __index = button })
     self.text = text
     self.x = x
@@ -8,6 +8,7 @@ function button.new(text, x, y, width, height, onClick)
     self.width = width
     self.height = height
     self.onClick = onClick
+    self.clickArgs = {...}
     return self
 end
 
@@ -29,7 +30,7 @@ end
 
 function button:mousepressed(x, y, button)
     if x >= self.x and x <= self.x + self.width and y >= self.y and y <= self.y + self.height then
-        self.onClick()
+        self.onClick(unpack(self.clickArgs))
     end
 end
 

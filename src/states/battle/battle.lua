@@ -1,178 +1,143 @@
-local stateManager = require "src.utils.state_manager"
+local global = require "src.global"
 local button = require "src.ui.button"
-local card = require "src.ui.card"
 local monsters = require "conf.monsters"
 local cards = require "conf.cards"
 
 -- 导入新模块
-local card_logic = require "src.states.battle.card_logic"
-local battle_ui = require "src.states.battle.ui.battle_ui"
+local battle_ui = require "src.ui.battle_ui"
 
 local monster = require "src.entities.monster"
 local player = require "src.entities.player"
 
-local global = require "src.global"
-
-local m = {}
-
--- 使用全局变量
-local generateCardButton = global.generateCardButton
-local executeCardButton = global.executeCardButton
-
-local currentMonster = global.currentMonster
-local currentPlayer = global.currentPlayer
-
--- 定义局部变量
-local battleType = "normal"
-
-function m.disableButtons()
-    global.generateCardButton.enabled = false
-    global.executeCardButton.enabled = false
+local mt = {}
+mt.__index = mt
+function mt:disableButtons()
+    self.generateCardButton.enabled = false
+    self.executeCardButton.enabled = false
 end
 
-function m.enableButtons()
-    global.generateCardButton.enabled = true
-    global.executeCardButton.enabled = true
+function mt:enableButtons()
+    self.generateCardButton.enabled = true
+    self.executeCardButton.enabled = true
 end
 
-function m.onGenerateCardClick()
-    if not global.generateCardButton.enabled or card_logic.getState().isReleasingCards then return end
-    
+function mt:onGenerateCardClick()
+    if not self.generateCardButton.enabled or global.cardMgr:getState().isReleasingCards then return end
     -- 生成卡牌
-    card_logic.generateCards(cards)
-    
+    global.cardMgr:generateCards(cards)
     -- 更新玩家状态
     local cardsGenerated = global.currentPlayer:incrementCardsGenerated()
-    
     -- 检查怪物意图
-    global.currentMonster:checkIntents("cards_generated", cardsGenerated, global.currentPlayer)
-    
+    self.currentMonster:checkIntents("cards_generated", cardsGenerated, global.currentPlayer)
     -- 增加回合计数并检查回合意图
-    local turnCount = global.currentMonster:incrementTurnCount()
-    global.currentMonster:checkIntents("turn_start", turnCount, global.currentPlayer)
+    local turnCount = self.currentMonster:incrementTurnCount()
+    self.currentMonster:checkIntents("turn_start", turnCount, global.currentPlayer)
+
+    -- 检查玩家血量
+    if global.currentPlayer:isDefeated() then
+        print("Player defeated!")
+        global.stateMgr:changeState("game_over")
+        return
+    end
 end
 
-function m.onExecuteCardClick()
-    if not global.executeCardButton.enabled or card_logic.getState().isReleasingCards then return end
-    
-    if card_logic.startReleasingCards() then
-        m.disableButtons()
+function mt:onExecuteCardClick()
+    if not self.executeCardButton.enabled or global.cardMgr:getState().isReleasingCards then return end
+    if global.cardMgr:startReleasingCards() then
+        self:disableButtons()
     else
         print("No cards to execute! Generate cards first.")
     end
 end
 
-function m.load(params)
+function mt:load(params)
     if not params then
         error("Battle state requires parameters")
         return
     end
-    
     if params.nodeType ~= "battle" then
         error("Invalid node type for battle state: " .. tostring(params.nodeType))
         return
     end
-    
     -- 获取战斗类型
-    battleType = params.battleType or "normal"
-    
+    self.battleType = params.battleType or "normal"
     -- 选择怪物池
-    local monsterPool = monsters[battleType]
+    local monsterPool = monsters[self.battleType]
     if not monsterPool then
-        print("Warning: Invalid battle type '" .. battleType .. "', falling back to normal")
+        print("Warning: Invalid battle type '" .. self.battleType .. "', falling back to normal")
         monsterPool = monsters.normal
     end
-    
     -- 初始化战斗
     local monsterData = monsterPool[math.random(1, #monsterPool)]
-    global.currentMonster = monster.new(monsterData, battleType)
-    global.currentPlayer = player.new()
-    card_logic.reset()
-    
+    self.currentMonster = monster.new(monsterData, self.battleType)
+    global.cardMgr:reset()
     -- 初始化按钮
-    global.generateCardButton = button.new("Generate Cards", 300, 550, 150, 50, m.onGenerateCardClick)
-    global.executeCardButton = button.new("Execute Cards", 500, 550, 150, 50, m.onExecuteCardClick)
-    m.enableButtons()
+    self.generateCardButton = button.new("Generate Cards", 300, 550, 150, 50, self.onGenerateCardClick, self)
+    self.executeCardButton = button.new("Execute Cards", 500, 550, 150, 50, self.onExecuteCardClick, self)
+    self:enableButtons()
 end
 
-function m.update(dt)
-    local cardState = card_logic.getState()
-    
+function mt:update(dt)
+    local cardState = global.cardMgr:getState()
     if not cardState.isReleasingCards then
-        global.generateCardButton:update(dt)
-        global.executeCardButton:update(dt)
+        self.generateCardButton:update(dt)
+        self.executeCardButton:update(dt)
     end
 
     -- 更新卡牌释放逻辑
-    local cardsFinished = card_logic.update(dt, function(cardData)
-        -- 应用卡牌效果
-        local damage = global.currentMonster:applyDamage(cardData.baseDamage or 0)
-        global.currentPlayer:applyCardEffect(cardData)
-        
-        -- 应用组合效果
-        local comboEffects = card_logic.calculateCardCombo({cardData})
-        for _, combo in ipairs(comboEffects) do
-            global.currentMonster:applyCardEffect(combo.card)
-            global.currentPlayer:applyComboEffect(combo)
-        end
-        
-        -- 检查怪物意图
-        global.currentMonster:checkIntents("damage_taken", damage, global.currentPlayer)
-        
-        card_logic.executeCardEffects(cardData, global.currentMonster)
+    local cardsFinished = global.cardMgr:update(dt, function(cardData)
+        global.cardMgr:executeCard(cardData, self.currentMonster)
     end)
-    
+
     -- 如果卡牌释放完成，重新启用按钮
     if cardsFinished then
-        m.enableButtons()
+        self:enableButtons()
         -- 清空 playerCards
-        card_logic.reset()
+        global.cardMgr:reset()
     end
-    
+
     if cardsFinished then
         -- 检查战斗结果
-        if global.currentMonster:isDefeated() then
+        if self.currentMonster:isDefeated() then
             print("Monster defeated!")
-            stateManager.changeState("map", { 
+            global.stateMgr:changeState("map", {
                 completeBattleNode = true,
-                battleType = battleType
+                battleType = self.battleType
             })
             return
         end
-        
         if global.currentPlayer:isDefeated() then
             print("Player defeated!")
-            stateManager.changeState("game_over")
+            global.stateMgr:changeState("game_over")
             return
         end
-        
         -- 检查回合结束时的怪物意图
-        global.currentMonster:checkIntents("turn_end", global.currentMonster:incrementTurnCount(), global.currentPlayer)
+        self.currentMonster:checkIntents("turn_end", self.currentMonster:incrementTurnCount(), global.currentPlayer)
     end
 end
 
-function m.draw()
+function mt:draw()
     -- 绘制背景
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
     -- 绘制UI
-    battle_ui.drawMonster(global.currentMonster)
+    battle_ui.drawMonster(self.currentMonster)
     battle_ui.drawPlayerHealth(global.currentPlayer)
-    
-    local cardState = card_logic.getState()
+
+    local cardState = global.cardMgr:getState()
     -- 先绘制飞行中的卡牌，再绘制静止的卡牌
     battle_ui.drawFlyingCards(cardState.flyingCards)
     battle_ui.drawCards(cardState.playerCards, cardState.flyingCards)
-    battle_ui.drawButtons(global.generateCardButton, global.executeCardButton, cardState.isReleasingCards)
+    battle_ui.drawButtons(self.generateCardButton, self.executeCardButton, cardState.isReleasingCards)
 end
 
-function m.mousepressed(x, y, button)
-    local cardState = card_logic.getState()
+function mt:mousepressed(x, y, button)
+    local cardState = global.cardMgr:getState()
     if cardState.isReleasingCards or #cardState.flyingCards > 0 then return end
-    
-    global.generateCardButton:mousepressed(x, y, button)
-    global.executeCardButton:mousepressed(x, y, button)
+
+    self.generateCardButton:mousepressed(x, y, button)
+    self.executeCardButton:mousepressed(x, y, button)
 
     -- 检查是否点击了卡牌
     for i, cardData in ipairs(cardState.playerCards) do
@@ -184,4 +149,15 @@ function m.mousepressed(x, y, button)
     end
 end
 
-return m 
+local Battle = {}
+
+function Battle.new()
+    return setmetatable({
+        generateCardButton = nil,
+        executeCardButton = nil,
+        currentMonster = nil,
+        battleType = "normal",
+    }, mt)
+end
+
+return Battle

@@ -3,19 +3,23 @@ local cards = {
     {
         name = "Strike",
         type = "attack",
-        baseDamage = 6,
+        baseEffect = {
+            {"damage", 6},
+        },
         description = "Deal 6 damage",
         comboEffect = {
-            [2] = {damage = 12}, -- Double damage with 2 cards
-            [3] = {damage = 18}, -- Triple damage with 3 cards
-            [4] = {damage = 24}, -- Quadruple damage with 4 cards
-            [5] = {damage = 30}  -- Quintuple damage with 5 cards
+            [2] = {damage = 12},
+            [3] = {damage = 18},
+            [4] = {damage = 24},
+            [5] = {damage = 30}
         }
     },
     {
         name = "Heavy Strike",
         type = "attack",
-        baseDamage = 8,
+        baseEffect = {
+            {"damage", 8},
+        },
         description = "Deal 8 damage",
         comboEffect = {
             [2] = {damage = 16},
@@ -28,7 +32,9 @@ local cards = {
     {
         name = "Defend",
         type = "defense",
-        baseBlock = 5,
+        baseEffect = {
+            {"block", 5},
+        },
         description = "Gain 5 block",
         comboEffect = {
             [2] = {block = 10},
@@ -40,7 +46,9 @@ local cards = {
     {
         name = "Iron Armor",
         type = "defense",
-        baseBlock = 8,
+        baseEffect = {
+            {"block", 8}
+        },
         description = "Gain 8 block",
         comboEffect = {
             [2] = {block = 16},
@@ -53,8 +61,10 @@ local cards = {
     {
         name = "Rage",
         type = "special",
-        baseDamage = 4,
-        baseBlock = 4,
+        baseEffect = {
+            {"damage", 4},
+            {"block", 4}
+        },
         description = "Deal 4 damage, gain 4 block",
         comboEffect = {
             [2] = {damage = 8, block = 8},
@@ -66,8 +76,10 @@ local cards = {
     {
         name = "Battle Cry",
         type = "special",
-        baseDamage = 3,
-        baseBlock = 3,
+        baseEffect = {
+            {"damage", 3},
+            {"block", 3}
+        },
         description = "Deal 3 damage, gain 3 block",
         comboEffect = {
             [2] = {damage = 6, block = 6},

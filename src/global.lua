@@ -3,10 +3,8 @@
 -- 状态变量
 local global = {}
 
-global.generateCardButton = nil
-global.executeCardButton = nil
+global.cardMgr = nil
+global.stateMgr = nil
+global.battle = nil
 
-global.currentMonster = nil
-global.currentPlayer = nil
-
-return global 
+return global

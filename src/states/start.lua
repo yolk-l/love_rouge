@@ -1,28 +1,37 @@
 local button = require "src.ui.button"
-local stateManager = require "src.utils.state_manager"
+local global = require "src.global"
+local player = require "src.entities.player"
 
-local startButton
+local mt = {}
+mt.__index = mt
 
-local M = {}
-
-function M.onStartClick()
-    stateManager.changeState("map") -- 使用状态管理器切换状态
+function mt:onStartClick()
+    global.stateMgr:changeState("map") -- 使用状态管理器切换状态
+    global.currentPlayer = player.new()
 end
 
-function M.load()
-    startButton = button.new("Start Game", 300, 200, 200, 50, M.onStartClick)
+function mt:load()
+    self.startButton = button.new("Start Game", 300, 200, 200, 50, self.onStartClick)
 end
 
-function M.update(dt)
-    startButton:update(dt)
+function mt:update(dt)
+    self.startButton:update(dt)
 end
 
-function M.draw()
-    startButton:draw()
+function mt:draw()
+    self.startButton:draw()
 end
 
-function M.mousepressed(x, y, button)
-    startButton:mousepressed(x, y, button)
+function mt:mousepressed(x, y, button)
+    self.startButton:mousepressed(x, y, button)
 end
 
-return M
+local Start = {}
+
+function Start.new()
+    return setmetatable({
+        startButton = nil,
+    }, mt)
+end
+
+return Start
