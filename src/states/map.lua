@@ -163,6 +163,13 @@ function mt:completeCurrentBattleNode()
     end
 end
 
+-- 添加一个函数来重置地图节点的点击状态
+function mt:resetNodeClickStates()
+    -- 重置每行已选择的节点
+    self.selectedNodeInRow = {}
+    self.currentBattleNodeIndex = nil
+end
+
 function mt:load(params)
     if #self.map == 0 then
         print("Loading map state...")
@@ -172,6 +179,9 @@ function mt:load(params)
     -- 如果从战斗返回，并且需要更新节点状态
     if params and params.completeBattleNode then
         self:completeCurrentBattleNode()
+    end
+    if params and params.restart then
+        self:resetNodeClickStates()
     end
 end
 

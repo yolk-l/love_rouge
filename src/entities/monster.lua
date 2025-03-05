@@ -1,19 +1,8 @@
-local monster = {}
 
-function monster.new(monsterData, battleType)
-    local self = setmetatable({}, { __index = monster })
-    self.name = monsterData.name
-    self.health = monsterData.health
-    self.maxHealth = monsterData.health
-    self.attack = monsterData.attack
-    self.type = battleType
-    self.intents = monsterData.intents
-    self.block = 0
-    self.turnCount = 0
-    return self
-end
+local mt = {}
+mt.__index = mt
 
-function monster:applyDamage(damage)
+function mt:applyDamage(damage)
     if self.block > 0 then
         if self.block >= damage then
             self.block = self.block - damage
@@ -26,11 +15,11 @@ function monster:applyDamage(damage)
     self.health = self.health - damage
 end
 
-function monster:applyBlock(block)
+function mt:applyBlock(block)
     self.block = self.block + block
 end
 
-function monster:executeIntent(intent, player)
+function mt:executeIntent(intent, player)
     if intent.type == "attack" then
         local damage = intent.value
         if player.block > 0 then
@@ -63,7 +52,7 @@ function monster:executeIntent(intent, player)
     end
 end
 
-function monster:checkIntents(trigger, value, player)
+function mt:checkIntents(trigger, value, player)
     if not self.intents then return end
     
     for _, intent in ipairs(self.intents) do
@@ -75,18 +64,33 @@ function monster:checkIntents(trigger, value, player)
     end
 end
 
-function monster:incrementTurnCount()
+function mt:incrementTurnCount()
     self.turnCount = self.turnCount + 1
     return self.turnCount
 end
 
-function monster:isDefeated()
+function mt:isDefeated()
     return self.health <= 0
 end
 
-function monster:draw()
+function mt:draw()
     love.graphics.print(self.name, 300, 100)
     love.graphics.print("Health: " .. self.health, 300, 120)
 end
 
-return monster
+local Monster = {}
+
+function Monster.new(monsterData, battleType)
+    return setmetatable({
+        name = monsterData.name,
+        health = monsterData.health,
+        maxHealth = monsterData.health,
+        attack = monsterData.attack,
+        type = battleType,
+        intents = monsterData.intents,
+        block = 0,
+        turnCount = 0,
+    }, mt)
+end
+
+return Monster

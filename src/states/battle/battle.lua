@@ -7,7 +7,6 @@ local cards = require "conf.cards"
 local battle_ui = require "src.ui.battle_ui"
 
 local monster = require "src.entities.monster"
-local player = require "src.entities.player"
 
 local mt = {}
 mt.__index = mt
