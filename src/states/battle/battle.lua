@@ -6,9 +6,10 @@ local cards = require "conf.cards"
 
 -- 导入新模块
 local card_logic = require "src.states.battle.card_logic"
-local monster_entity = require "src.states.battle.monster_entity"
-local player_entity = require "src.states.battle.player_entity"
 local battle_ui = require "src.states.battle.ui.battle_ui"
+
+local monster = require "src.entities.monster"
+local player = require "src.entities.player"
 
 local m = {}
 
@@ -16,6 +17,10 @@ local m = {}
 local generateCardButton
 local executeCardButton
 local battleType = "normal"
+
+-- 使用新的 monster 和 player 对象
+local currentMonster
+local currentPlayer
 
 function m.disableButtons()
     generateCardButton.enabled = false
@@ -34,14 +39,14 @@ function m.onGenerateCardClick()
     card_logic.generateCards(cards)
     
     -- 更新玩家状态
-    local cardsGenerated = player_entity.incrementCardsGenerated()
+    local cardsGenerated = currentPlayer:incrementCardsGenerated()
     
     -- 检查怪物意图
-    monster_entity.checkIntents("cards_generated", cardsGenerated, player_entity.getState())
+    currentMonster:checkIntents("cards_generated", cardsGenerated, currentPlayer)
     
     -- 增加回合计数并检查回合意图
-    local turnCount = monster_entity.incrementTurnCount()
-    monster_entity.checkIntents("turn_start", turnCount, player_entity.getState())
+    local turnCount = currentMonster:incrementTurnCount()
+    currentMonster:checkIntents("turn_start", turnCount, currentPlayer)
 end
 
 function m.onExecuteCardClick()
@@ -77,8 +82,8 @@ function m.load(params)
     
     -- 初始化战斗
     local monsterData = monsterPool[math.random(1, #monsterPool)]
-    monster_entity.initialize(monsterData, battleType)
-    player_entity.initialize()
+    currentMonster = monster.new(monsterData, battleType)
+    currentPlayer = player.new()
     card_logic.reset()
     
     -- 初始化按钮
@@ -98,18 +103,18 @@ function m.update(dt)
     -- 更新卡牌释放逻辑
     local cardsFinished = card_logic.update(dt, function(cardData)
         -- 应用卡牌效果
-        local damage = monster_entity.applyCardEffect(cardData)
-        player_entity.applyCardEffect(cardData)
+        local damage = currentMonster:applyDamage(cardData.baseDamage or 0)
+        currentPlayer:applyCardEffect(cardData)
         
         -- 应用组合效果
         local comboEffects = card_logic.calculateCardCombo({cardData})
         for _, combo in ipairs(comboEffects) do
-            monster_entity.applyCardEffect(combo.card)
-            player_entity.applyComboEffect(combo)
+            currentMonster:applyCardEffect(combo.card)
+            currentPlayer:applyComboEffect(combo)
         end
         
         -- 检查怪物意图
-        monster_entity.checkIntents("damage_taken", damage, player_entity.getState())
+        currentMonster:checkIntents("damage_taken", damage, currentPlayer)
     end)
     
     -- 如果卡牌释放完成，重新启用按钮
@@ -121,7 +126,7 @@ function m.update(dt)
     
     if cardsFinished then
         -- 检查战斗结果
-        if monster_entity.isDefeated() then
+        if currentMonster:isDefeated() then
             print("Monster defeated!")
             stateManager.changeState("map", { 
                 completeBattleNode = true,
@@ -130,14 +135,14 @@ function m.update(dt)
             return
         end
         
-        if player_entity.isDefeated() then
+        if currentPlayer:isDefeated() then
             print("Player defeated!")
             stateManager.changeState("game_over")
             return
         end
         
         -- 检查回合结束时的怪物意图
-        monster_entity.checkIntents("turn_end", monster_entity.incrementTurnCount(), player_entity.getState())
+        currentMonster:checkIntents("turn_end", currentMonster:incrementTurnCount(), currentPlayer)
     end
 end
 
@@ -147,8 +152,8 @@ function m.draw()
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
     -- 绘制UI
-    battle_ui.drawMonster(monster_entity.getState())
-    battle_ui.drawPlayerHealth(player_entity.getState())
+    battle_ui.drawMonster(currentMonster)
+    battle_ui.drawPlayerHealth(currentPlayer)
     
     local cardState = card_logic.getState()
     -- 先绘制飞行中的卡牌，再绘制静止的卡牌
