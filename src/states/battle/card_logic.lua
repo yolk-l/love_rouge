@@ -39,22 +39,26 @@ end
 
 -- 生成卡牌
 function card_logic.generateCards(cards)
-    -- 确保 playerCards 被正确初始化为一个新的空表
     playerCards = {}
-    -- 确保 currentCardIndex 被重置为 0
-    currentCardIndex = 0
-    -- 确保 isReleasingCards 被设置为 false
-    isReleasingCards = false
-    -- 确保 flyingCards 被重置为一个新的空表
-    flyingCards = {}
-    -- 生成5张随机卡牌
     for i = 1, 5 do
         local randomCard = cards[math.random(1, #cards)]
-        table.insert(playerCards, randomCard)
+        local cardData = {
+            name = randomCard.name,
+            type = randomCard.type,
+            baseDamage = randomCard.baseDamage or 0,
+            baseBlock = randomCard.baseBlock or 0,
+            effects = {},
+            description = randomCard.description,
+            comboEffect = randomCard.comboEffect
+        }
+        if randomCard.baseDamage then
+            table.insert(cardData.effects, {type = "damage", value = randomCard.baseDamage})
+        end
+        if randomCard.baseBlock then
+            table.insert(cardData.effects, {type = "block", value = randomCard.baseBlock})
+        end
+        table.insert(playerCards, cardData)
     end
-    -- 输出生成的卡牌列表以便调试
-    print("Generated Cards:", playerCards)
-    return playerCards
 end
 
 -- 开始释放卡牌
