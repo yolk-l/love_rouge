@@ -1,24 +1,48 @@
-local monster_manager = {}
+local Entity = {}
+Entity.__index = Entity
 
-local currentMonster = nil
+function Entity:new(health, maxHealth)
+    local entity = setmetatable({}, self)
+    entity.health = health
+    entity.maxHealth = maxHealth
+    entity.block = 0
+    return entity
+end
+
+function Entity:applyDamage(damage)
+    if self.block > 0 then
+        if self.block >= damage then
+            self.block = self.block - damage
+            damage = 0
+        else
+            damage = damage - self.block
+            self.block = 0
+        end
+    end
+    self.health = self.health - damage
+end
+
+function Entity:applyBlock(block)
+    self.block = self.block + block
+end
+
+local monster_entity = {}
+
+local currentMonster
 
 -- 初始化怪物
-function monster_manager.initialize(monsterData, battleType)
-    currentMonster = {
-        name = monsterData.name,
-        health = monsterData.health,
-        maxHealth = monsterData.health,
-        attack = monsterData.attack,
-        type = battleType,
-        intents = monsterData.intents,
-        block = 0,
-        turnCount = 0
-    }
+function monster_entity.initialize(monsterData, battleType)
+    currentMonster = Entity:new(monsterData.health, monsterData.health)
+    currentMonster.name = monsterData.name
+    currentMonster.attack = monsterData.attack
+    currentMonster.type = battleType
+    currentMonster.intents = monsterData.intents
+    currentMonster.turnCount = 0
     return currentMonster
 end
 
 -- 执行怪物意图
-function monster_manager.executeIntent(intent, player)
+function monster_entity.executeIntent(intent, player)
     if intent.type == "attack" then
         local damage = intent.value
         if player.block > 0 then
@@ -53,50 +77,38 @@ function monster_manager.executeIntent(intent, player)
 end
 
 -- 检查怪物意图
-function monster_manager.checkIntents(trigger, value, player)
+function monster_entity.checkIntents(trigger, value, player)
     if not currentMonster or not currentMonster.intents then return end
     
     for _, intent in ipairs(currentMonster.intents) do
         if intent.trigger == trigger then
             if not intent.triggerValue or (value and value >= intent.triggerValue) then
-                monster_manager.executeIntent(intent, player)
+                monster_entity.executeIntent(intent, player)
             end
         end
     end
 end
 
 -- 应用卡牌效果到怪物
-function monster_manager.applyCardEffect(cardData)
+function monster_entity.applyCardEffect(cardData)
     if cardData.baseDamage then
-        local damage = cardData.baseDamage
-        if currentMonster.block > 0 then
-            if currentMonster.block >= damage then
-                currentMonster.block = currentMonster.block - damage
-                damage = 0
-            else
-                damage = damage - currentMonster.block
-                currentMonster.block = 0
-            end
-        end
-        currentMonster.health = currentMonster.health - damage
-        print(string.format("Card %s dealt %d damage!", cardData.name, damage))
-        return damage
+        currentMonster:applyDamage(cardData.baseDamage)
+        print(string.format("Card %s dealt %d damage!", cardData.name, cardData.baseDamage))
     end
-    return 0
 end
 
 -- 获取怪物状态
-function monster_manager.getState()
+function monster_entity.getState()
     return currentMonster
 end
 
 -- 检查怪物是否被击败
-function monster_manager.isDefeated()
+function monster_entity.isDefeated()
     return currentMonster and currentMonster.health <= 0
 end
 
 -- 增加回合计数
-function monster_manager.incrementTurnCount()
+function monster_entity.incrementTurnCount()
     if currentMonster then
         currentMonster.turnCount = currentMonster.turnCount + 1
         return currentMonster.turnCount
@@ -104,4 +116,4 @@ function monster_manager.incrementTurnCount()
     return 0
 end
 
-return monster_manager 
+return monster_entity 

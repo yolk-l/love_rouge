@@ -1,4 +1,4 @@
-local card_manager = {}
+local card_logic = {}
 
 -- 状态变量
 local playerCards = {}
@@ -8,7 +8,7 @@ local cardReleaseTimer = 0
 local flyingCards = {}
 
 -- 计算卡牌组合效果
-function card_manager.calculateCardCombo(cards)
+function card_logic.calculateCardCombo(cards)
     local cardCounts = {}
     local comboEffects = {}
     
@@ -38,20 +38,27 @@ function card_manager.calculateCardCombo(cards)
 end
 
 -- 生成卡牌
-function card_manager.generateCards(cards)
+function card_logic.generateCards(cards)
+    -- 确保 playerCards 被正确初始化为一个新的空表
     playerCards = {}
+    -- 确保 currentCardIndex 被重置为 0
+    currentCardIndex = 0
+    -- 确保 isReleasingCards 被设置为 false
+    isReleasingCards = false
+    -- 确保 flyingCards 被重置为一个新的空表
+    flyingCards = {}
+    -- 生成5张随机卡牌
     for i = 1, 5 do
         local randomCard = cards[math.random(1, #cards)]
         table.insert(playerCards, randomCard)
     end
-    currentCardIndex = 0
-    isReleasingCards = false
-    flyingCards = {}
+    -- 输出生成的卡牌列表以便调试
+    print("Generated Cards:", playerCards)
     return playerCards
 end
 
 -- 开始释放卡牌
-function card_manager.startReleasingCards()
+function card_logic.startReleasingCards()
     if #playerCards > 0 then
         isReleasingCards = true
         return true
@@ -59,8 +66,21 @@ function card_manager.startReleasingCards()
     return false
 end
 
+-- 封装卡牌效果
+function card_logic.executeCardEffects(cardData, target)
+    for _, effect in ipairs(cardData.effects) do
+        if effect.type == "damage" then
+            target:applyDamage(effect.value)
+            print(string.format("Card %s dealt %d damage to %s!", cardData.name, effect.value, target.name))
+        elseif effect.type == "block" then
+            target:applyBlock(effect.value)
+            print(string.format("Card %s gave %d block to %s!", cardData.name, effect.value, target.name))
+        end
+    end
+end
+
 -- 更新卡牌释放逻辑
-function card_manager.update(dt, onCardEffect)
+function card_logic.update(dt, onCardEffect)
     if not isReleasingCards then return false end
     
     cardReleaseTimer = cardReleaseTimer + dt
@@ -80,6 +100,7 @@ function card_manager.update(dt, onCardEffect)
             })
         else
             isReleasingCards = false
+            currentCardIndex = 0  -- 重置索引
             return true -- 所有卡牌释放完成
         end
     end
@@ -91,15 +112,6 @@ function card_manager.update(dt, onCardEffect)
         if flyingCard.progress >= 1 then
             -- 应用卡牌效果
             onCardEffect(flyingCard.card)
-            
-            -- 从玩家卡组中移除已使用的卡牌
-            table.remove(playerCards, flyingCard.cardIndex)
-            
-            -- 更新剩余飞行卡牌的索引
-            for j = i + 1, #flyingCards do
-                flyingCards[j].cardIndex = flyingCards[j].cardIndex - 1
-            end
-            
             table.remove(flyingCards, i)
         end
     end
@@ -108,7 +120,7 @@ function card_manager.update(dt, onCardEffect)
 end
 
 -- 获取卡牌状态
-function card_manager.getState()
+function card_logic.getState()
     return {
         playerCards = playerCards,
         currentCardIndex = currentCardIndex,
@@ -118,7 +130,7 @@ function card_manager.getState()
 end
 
 -- 重置卡牌状态
-function card_manager.reset()
+function card_logic.reset()
     playerCards = {}
     currentCardIndex = 0
     isReleasingCards = false
@@ -126,4 +138,4 @@ function card_manager.reset()
     flyingCards = {}
 end
 
-return card_manager 
+return card_logic 

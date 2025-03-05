@@ -5,9 +5,9 @@ local monsters = require "conf.monsters"
 local cards = require "conf.cards"
 
 -- 导入新模块
-local card_manager = require "src.states.battle.card_manager"
-local monster_manager = require "src.states.battle.monster_manager"
-local player_manager = require "src.states.battle.player_manager"
+local card_logic = require "src.states.battle.card_logic"
+local monster_entity = require "src.states.battle.monster_entity"
+local player_entity = require "src.states.battle.player_entity"
 local battle_ui = require "src.states.battle.ui.battle_ui"
 
 local m = {}
@@ -28,26 +28,26 @@ function m.enableButtons()
 end
 
 function m.onGenerateCardClick()
-    if not generateCardButton.enabled or card_manager.getState().isReleasingCards then return end
+    if not generateCardButton.enabled or card_logic.getState().isReleasingCards then return end
     
     -- 生成卡牌
-    card_manager.generateCards(cards)
+    card_logic.generateCards(cards)
     
     -- 更新玩家状态
-    local cardsGenerated = player_manager.incrementCardsGenerated()
+    local cardsGenerated = player_entity.incrementCardsGenerated()
     
     -- 检查怪物意图
-    monster_manager.checkIntents("cards_generated", cardsGenerated, player_manager.getState())
+    monster_entity.checkIntents("cards_generated", cardsGenerated, player_entity.getState())
     
     -- 增加回合计数并检查回合意图
-    local turnCount = monster_manager.incrementTurnCount()
-    monster_manager.checkIntents("turn_start", turnCount, player_manager.getState())
+    local turnCount = monster_entity.incrementTurnCount()
+    monster_entity.checkIntents("turn_start", turnCount, player_entity.getState())
 end
 
 function m.onExecuteCardClick()
-    if not executeCardButton.enabled or card_manager.getState().isReleasingCards then return end
+    if not executeCardButton.enabled or card_logic.getState().isReleasingCards then return end
     
-    if card_manager.startReleasingCards() then
+    if card_logic.startReleasingCards() then
         m.disableButtons()
     else
         print("No cards to execute! Generate cards first.")
@@ -77,9 +77,9 @@ function m.load(params)
     
     -- 初始化战斗
     local monsterData = monsterPool[math.random(1, #monsterPool)]
-    monster_manager.initialize(monsterData, battleType)
-    player_manager.initialize()
-    card_manager.reset()
+    monster_entity.initialize(monsterData, battleType)
+    player_entity.initialize()
+    card_logic.reset()
     
     -- 初始化按钮
     generateCardButton = button.new("Generate Cards", 300, 550, 150, 50, m.onGenerateCardClick)
@@ -88,7 +88,7 @@ function m.load(params)
 end
 
 function m.update(dt)
-    local cardState = card_manager.getState()
+    local cardState = card_logic.getState()
     
     if not cardState.isReleasingCards then
         generateCardButton:update(dt)
@@ -96,25 +96,32 @@ function m.update(dt)
     end
 
     -- 更新卡牌释放逻辑
-    local cardsFinished = card_manager.update(dt, function(cardData)
+    local cardsFinished = card_logic.update(dt, function(cardData)
         -- 应用卡牌效果
-        local damage = monster_manager.applyCardEffect(cardData)
-        player_manager.applyCardEffect(cardData)
+        local damage = monster_entity.applyCardEffect(cardData)
+        player_entity.applyCardEffect(cardData)
         
         -- 应用组合效果
-        local comboEffects = card_manager.calculateCardCombo({cardData})
+        local comboEffects = card_logic.calculateCardCombo({cardData})
         for _, combo in ipairs(comboEffects) do
-            monster_manager.applyCardEffect(combo.card)
-            player_manager.applyComboEffect(combo)
+            monster_entity.applyCardEffect(combo.card)
+            player_entity.applyComboEffect(combo)
         end
         
         -- 检查怪物意图
-        monster_manager.checkIntents("damage_taken", damage, player_manager.getState())
+        monster_entity.checkIntents("damage_taken", damage, player_entity.getState())
     end)
+    
+    -- 如果卡牌释放完成，重新启用按钮
+    if cardsFinished then
+        m.enableButtons()
+        -- 清空 playerCards
+        card_logic.reset()
+    end
     
     if cardsFinished then
         -- 检查战斗结果
-        if monster_manager.isDefeated() then
+        if monster_entity.isDefeated() then
             print("Monster defeated!")
             stateManager.changeState("map", { 
                 completeBattleNode = true,
@@ -123,14 +130,14 @@ function m.update(dt)
             return
         end
         
-        if player_manager.isDefeated() then
+        if player_entity.isDefeated() then
             print("Player defeated!")
             stateManager.changeState("game_over")
             return
         end
         
         -- 检查回合结束时的怪物意图
-        monster_manager.checkIntents("turn_end", monster_manager.incrementTurnCount(), player_manager.getState())
+        monster_entity.checkIntents("turn_end", monster_entity.incrementTurnCount(), player_entity.getState())
     end
 end
 
@@ -140,10 +147,10 @@ function m.draw()
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
     -- 绘制UI
-    battle_ui.drawMonster(monster_manager.getState())
-    battle_ui.drawPlayerHealth(player_manager.getState())
+    battle_ui.drawMonster(monster_entity.getState())
+    battle_ui.drawPlayerHealth(player_entity.getState())
     
-    local cardState = card_manager.getState()
+    local cardState = card_logic.getState()
     -- 先绘制飞行中的卡牌，再绘制静止的卡牌
     battle_ui.drawFlyingCards(cardState.flyingCards)
     battle_ui.drawCards(cardState.playerCards, cardState.flyingCards)
@@ -151,7 +158,7 @@ function m.draw()
 end
 
 function m.mousepressed(x, y, button)
-    local cardState = card_manager.getState()
+    local cardState = card_logic.getState()
     if cardState.isReleasingCards or #cardState.flyingCards > 0 then return end
     
     generateCardButton:mousepressed(x, y, button)
