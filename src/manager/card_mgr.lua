@@ -1,6 +1,6 @@
 local global = require "src.global"
 local cards = require "conf.cards"
-local effectMgr = require "src.skill.effect_mgr"
+local effectMgr = require "src.manager.effect_mgr"
 local mt = {}
 mt.__index = mt
 
@@ -95,8 +95,13 @@ function mt:update(dt, onCardEffect)
             onCardEffect(flyingCard.card)
             table.remove(self.flyingCards, i)
             -- 检查玩家血量
-            if global.currentPlayer:isDefeated() then
-                print("Player defeated!")
+            local battleResult = global.charaterMgr:is_battle_over()
+            if battleResult == "player_win" then
+                print("Player win!")
+                global.stateMgr:changeState("game_over")
+                return true
+            elseif battleResult == "monster_win" then
+                print("Monster win!")
                 global.stateMgr:changeState("game_over")
                 return true
             end

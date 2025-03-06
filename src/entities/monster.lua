@@ -3,6 +3,8 @@ local attrComp = require "src.entities.component.attr_comp"
 local effectMgr = require "src.manager.effect_mgr"
 local eventMgr = require "src.manager.event_mgr"
 local global = require "src.global"
+local intentComp = require "src.entities.component.intent_comp"
+local targetComp = require "src.entities.component.target_comp"
 
 local mt = {}
 mt.__index = mt
@@ -16,7 +18,7 @@ function mt:executeIntent(intent)
             local argValue = intent.args[argName]
             table.insert(effectArgs, argValue)
         end
-        local msg = string.format("Monster %s intent: %s, effect: %s", self.name, intent.name, effectType)
+        local msg = string.format("Monster %s intent: %s, effect: %s\n", self.name, intent.name, effectType)
         for i, argValue in ipairs(effectArgs) do
             msg = msg .. "arg" .. i .. "=" .. argValue
         end
@@ -37,20 +39,30 @@ function mt:registerIntentListeners()
     end
 
     self.intentListenerIds = {}
+    self:initIntent()
 
     -- 为每个意图注册监听器
     for _, intent in ipairs(self.intents) do
-        local listenerId = eventMgr.on(intent.trigger, function(eventData)
-            local value = eventData.value
-            if not intent.triggerValue or (value and value >= intent.triggerValue) then
-                self:executeIntent(intent)
-            end
-        end, self)
+        if intent.trigger then
+            local listenerId = eventMgr.on(intent.trigger.event, function(eventData)
+                -- 增加计数
+                self:incrementIntentCount(intent.name)
+                
+                -- 检查是否满足触发条件
+                if self:checkIntentTrigger(intent) then
+                    self:executeIntent(intent)
+                    -- 如果是一次性意图，重置计数
+                    if intent.trigger.one_time then
+                        self:resetIntentCount(intent.name)
+                    end
+                end
+            end, self)
 
-        table.insert(self.intentListenerIds, {
-            event = intent.trigger,
-            id = listenerId
-        })
+            table.insert(self.intentListenerIds, {
+                event = intent.trigger.event,
+                id = listenerId
+            })
+        end
     end
 end
 
@@ -63,6 +75,7 @@ function mt:removeIntentListeners()
     end
 
     self.intentListenerIds = {}
+    self:cleanupIntent()
 end
 
 function mt:incrementTurnCount()
@@ -104,6 +117,8 @@ function Monster.new(monsterData, battleType)
     }, mt)
 
     base_util.inject_comp(monster, attrComp)
+    base_util.inject_comp(monster, intentComp)
+    base_util.inject_comp(monster, targetComp)
     
     -- 注册意图监听器
     monster:registerIntentListeners()

@@ -15,8 +15,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "turn_start", trigger_args = {} },
+                    trigger = {
+                        event = "turn_start",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 1
                 },
@@ -28,8 +30,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    trigger = {
+                        event = "character_damaged",
+                        required_count = "arg2",
+                        one_time = true
                     },
                     priority = 2
                 },
@@ -49,8 +53,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "turn_start", trigger_args = {} },
+                    trigger = {
+                        event = "turn_start",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 1
                 },
@@ -62,8 +68,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "cards_generated", trigger_args = {} },
+                    trigger = {
+                        event = "cards_generated",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 2
                 }
@@ -86,8 +94,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "turn_start", trigger_args = {} },
+                    trigger = {
+                        event = "turn_start",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 1
                 },
@@ -99,8 +109,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    trigger = {
+                        event = "character_damaged",
+                        required_count = "arg2",
+                        one_time = true
                     },
                     priority = 2
                 },
@@ -112,8 +124,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "cards_generated", trigger_args = {} },
+                    trigger = {
+                        event = "cards_generated",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 3
                 }
@@ -133,8 +147,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "turn_start", trigger_args = {} },
+                    trigger = {
+                        event = "turn_start",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 1
                 },
@@ -146,8 +162,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "cards_generated", trigger_args = {} },
+                    trigger = {
+                        event = "cards_generated",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 2
                 },
@@ -159,8 +177,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="buff_attack", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    trigger = {
+                        event = "character_damaged",
+                        required_count = "arg2",
+                        one_time = true
                     },
                     priority = 3
                 }
@@ -183,8 +203,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "turn_start", trigger_args = {} },
+                    trigger = {
+                        event = "turn_start",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 1
                 },
@@ -196,8 +218,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    trigger = {
+                        event = "character_damaged",
+                        required_count = "arg2",
+                        one_time = true
                     },
                     priority = 2
                 },
@@ -209,8 +233,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "cards_generated", trigger_args = {} },
+                    trigger = {
+                        event = "cards_generated",
+                        required_count = 1,
+                        one_time = true
                     },
                     priority = 3
                 },
@@ -222,8 +248,10 @@ local monsters = {
                     effect_list = {
                         {effect_type ="buff_attack", effect_target = "self", effect_args = {"arg1"} },
                     },
-                    trigger =  {
-                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    trigger = {
+                        event = "character_damaged",
+                        required_count = "arg2",
+                        one_time = true
                     },
                     priority = 4
                 }

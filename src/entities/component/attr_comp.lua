@@ -2,7 +2,6 @@ local global = require "src.global"
 local eventMgr = require "src.manager.event_mgr"
 
 local mt = {}
-mt.__index = mt
 
 function mt:applyDamage(caster, damage)
     local originalDamage = damage

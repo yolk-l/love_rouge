@@ -2,6 +2,7 @@ local global = require "src.global"
 local stateMgr = require "src.state_mgr"
 local cardMgr = require "src.manager.card_mgr"
 local battle = require "src.states.battle"
+local charaterMgr = require "src.manager.charater_mgr"
 
 table.clone = function(t)
     local clone = {}
@@ -19,6 +20,7 @@ function love.load()
     global.stateMgr = stateMgr.new()
     global.cardMgr = cardMgr.new()
     global.battle = battle.new()
+    global.charaterMgr = charaterMgr.new()
     -- 使用懒加载方式加载初始状态
     for k,v in pairs(global.stateMgr.states) do
         print("Loading state", k, v)

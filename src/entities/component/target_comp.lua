@@ -1,8 +1,9 @@
+local global = require "src.global"
+
 local mt = {}
-mt.__index = mt
 
 function mt:getEnemy()
-    return self.entity:getEnemy()
+    return global.charaterMgr:getEnemiesByCamp(self.camp)[1]
 end
 
 return mt

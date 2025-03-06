@@ -1,5 +1,6 @@
 local base_util = require "src.utils.base_util"
 local attrComp = require "src.entities.component.attr_comp"
+local targetComp = require "src.entities.component.target_comp"
 local eventMgr = require "src.manager.event_mgr"
 local global = require "src.global"
 local mt = {}
@@ -47,6 +48,7 @@ function Player.new()
     }, mt)
 
     base_util.inject_comp(player, attrComp)
+    base_util.inject_comp(player, targetComp)
     
     -- 设置全局玩家引用
     global.player = player
