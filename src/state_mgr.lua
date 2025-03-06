@@ -1,4 +1,4 @@
-local battle = require "src.states.battle.battle"
+local battle = require "src.states.battle"
 local map = require "src.states.map"
 local gameOver = require "src.states.game_over"
 local start = require "src.states.start"

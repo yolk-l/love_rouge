@@ -1,76 +1,85 @@
+local base_util = require "src.utils.base_util"
+local attrComp = require "src.entities.component.attr_comp"
+local effectMgr = require "src.manager.effect_mgr"
+local eventMgr = require "src.manager.event_mgr"
+local global = require "src.global"
 
 local mt = {}
 mt.__index = mt
 
-function mt:applyDamage(damage)
-    if self.block > 0 then
-        if self.block >= damage then
-            self.block = self.block - damage
-            damage = 0
-        else
-            damage = damage - self.block
-            self.block = 0
+function mt:executeIntent(intent)
+    for _, effect in ipairs(intent.effect_list) do
+        local effectType = effect.effect_type
+        local effectTarget = effect.effect_target
+        local effectArgs = {}
+        for _, argName in ipairs(effect.effect_args) do
+            local argValue = intent.args[argName]
+            table.insert(effectArgs, argValue)
         end
-    end
-    self.health = self.health - damage
-end
-
-function mt:applyBlock(block)
-    self.block = self.block + block
-end
-
-function mt:executeIntent(intent, player)
-    if intent.type == "attack" then
-        local damage = intent.value
-        if player.block > 0 then
-            if player.block >= damage then
-                player.block = player.block - damage
-                damage = 0
-                print(string.format("Blocked all damage! Remaining block: %d", player.block))
-            else
-                damage = damage - player.block
-                print(string.format("Blocked %d damage! Remaining block: %d", player.block, 0))
-                player.block = 0
-            end
+        local msg = string.format("Monster %s intent: %s, effect: %s", self.name, intent.name, effectType)
+        for i, argValue in ipairs(effectArgs) do
+            msg = msg .. "arg" .. i .. "=" .. argValue
         end
-        player.health = player.health - damage
-        player.damageTaken = player.damageTaken + damage
-        print(string.format("Monster %s used %s for %d damage!", 
-            self.name, intent.name, damage))
-    elseif intent.type == "heal" then
-        self.health = math.min(self.maxHealth, self.health + intent.value)
-        print(string.format("Monster %s used %s to heal for %d!", 
-            self.name, intent.name, intent.value))
-    elseif intent.type == "shield" then
-        self.block = (self.block or 0) + intent.value
-        print(string.format("Monster %s used %s to gain %d block!", 
-            self.name, intent.name, intent.value))
-    elseif intent.type == "buff_attack" then
-        self.attack = self.attack + intent.value
-        print(string.format("Monster %s used %s to increase attack by %d!", 
-            self.name, intent.name, intent.value))
+        print(msg)
+        effectMgr.excuteEffect(self, effectType, effectTarget, effectArgs)
     end
 end
 
-function mt:checkIntents(trigger, value, player)
+-- 注册怪物的意图监听器
+function mt:registerIntentListeners()
     if not self.intents then return end
-    
-    for _, intent in ipairs(self.intents) do
-        if intent.trigger == trigger then
-            if not intent.triggerValue or (value and value >= intent.triggerValue) then
-                self:executeIntent(intent, player)
-            end
+
+    -- 清除之前的监听器
+    if self.intentListenerIds then
+        for _, listenerId in ipairs(self.intentListenerIds) do
+            eventMgr.off(listenerId.event, listenerId.id)
         end
     end
+
+    self.intentListenerIds = {}
+
+    -- 为每个意图注册监听器
+    for _, intent in ipairs(self.intents) do
+        local listenerId = eventMgr.on(intent.trigger, function(eventData)
+            local value = eventData.value
+            if not intent.triggerValue or (value and value >= intent.triggerValue) then
+                self:executeIntent(intent)
+            end
+        end, self)
+
+        table.insert(self.intentListenerIds, {
+            event = intent.trigger,
+            id = listenerId
+        })
+    end
+end
+
+-- 移除怪物的意图监听器
+function mt:removeIntentListeners()
+    if not self.intentListenerIds then return end
+
+    for _, listenerId in ipairs(self.intentListenerIds) do
+        eventMgr.off(listenerId.event, listenerId.id)
+    end
+
+    self.intentListenerIds = {}
 end
 
 function mt:incrementTurnCount()
     self.turnCount = self.turnCount + 1
+    -- 触发回合开始事件
+    eventMgr.emit("turn_start", {
+        value = self.turnCount,
+        source = self
+    })
     return self.turnCount
 end
 
-function mt:isDefeated()
-    return self.health <= 0
+function mt:on_turn_end()
+    -- 触发回合结束事件
+    eventMgr.emit("turn_end", {
+        source = self
+    })
 end
 
 function mt:draw()
@@ -81,7 +90,7 @@ end
 local Monster = {}
 
 function Monster.new(monsterData, battleType)
-    return setmetatable({
+    local monster = setmetatable({
         name = monsterData.name,
         health = monsterData.health,
         maxHealth = monsterData.health,
@@ -90,7 +99,16 @@ function Monster.new(monsterData, battleType)
         intents = monsterData.intents,
         block = 0,
         turnCount = 0,
+        camp = global.camp.monster,
+        intentListenerIds = {}
     }, mt)
+
+    base_util.inject_comp(monster, attrComp)
+    
+    -- 注册意图监听器
+    monster:registerIntentListeners()
+    
+    return monster
 end
 
 return Monster

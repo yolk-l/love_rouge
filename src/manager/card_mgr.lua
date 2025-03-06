@@ -1,22 +1,23 @@
-
 local global = require "src.global"
-
+local cards = require "conf.cards"
+local effectMgr = require "src.skill.effect_mgr"
 local mt = {}
 mt.__index = mt
 
 -- 生成卡牌
-function mt:generateCards(cards)
+function mt:generateCards()
     self.playerCards = {}
     self.cardCounts = {}
+    if not self.cardNameList then
+        self.cardNameList = {}
+        for name, _ in pairs(cards) do
+            table.insert(self.cardNameList, name)
+        end
+    end
+
     for _ = 1, 5 do
-        local randomCard = cards[math.random(1, #cards)]
-        local cardData = {
-            name = randomCard.name,
-            type = randomCard.type,
-            baseEffect = randomCard.baseEffect,
-            description = randomCard.description,
-            comboEffect = randomCard.comboEffect
-        }
+        local randomCardName = self.cardNameList[math.random(1, #self.cardNameList)]
+        local cardData = table.clone(cards[randomCardName])
         table.insert(self.playerCards, cardData)
         self.cardCounts[cardData.name] = (self.cardCounts[cardData.name] or 0) + 1
     end
@@ -31,26 +32,33 @@ function mt:startReleasingCards()
     return false
 end
 
-function mt:excuteEffect(effectType, effectValue, target)
-    if effectType == "damage" then
-        target:applyDamage(effectValue)
-    elseif effectType == "block" then
-        target:applyBlock(effectValue)
-    end
-end
-
 -- 封装卡牌效果
-function mt:executeCard(cardData, target)
+function mt:executeCard(cardData)
     local count = self.cardCounts[cardData.name]
-    -- 先应用基础效果
-    for _, effect in ipairs(cardData.baseEffect) do
-        local effectType = effect[1]
-        local effectValue = effect[2]
-        local comboEffect = cardData.comboEffect[count]
-        if comboEffect and comboEffect[effectType] then
-            effectValue = comboEffect[effectType]
+    local caster = global.player
+    -- 应用基础效果，根据相同卡牌数量提升效果数值
+    for _, effect in ipairs(cardData.effect_list) do
+        local effectType = effect.effect_type
+        local effect_target = effect.effect_target
+        -- 如果有相同卡牌，根据comboEffect提升效果数值
+        local comboArgs = nil
+        if count > 1 and cardData.comboEffect and cardData.comboEffect[count] and cardData.comboEffect[count][effectType] then
+            comboArgs = cardData.comboEffect[count][effectType]
         end
-        self:excuteEffect(effectType, effectValue, target)
+        local effectArgs = {}
+        for _, arg_name in ipairs(effect.effect_args) do
+            local argValue = cardData.args[arg_name]
+            if comboArgs then
+                argValue = comboArgs[arg_name] or argValue
+            end
+            table.insert(effectArgs, argValue)
+        end
+        local msg = string.format("Card %s effect: %s", cardData.name, effectType)
+        for i, argValue in ipairs(effectArgs) do
+            msg = msg .. "arg" .. i .. "=" .. argValue
+        end
+        print(msg)
+        effectMgr.excuteEffect(caster, effectType, effect_target, effectArgs)
     end
 end
 

@@ -63,57 +63,39 @@ function battle_ui.drawPlayerHealth(player)
 end
 
 -- 绘制卡牌
-function battle_ui.drawCards(cards, flyingCards)
+function battle_ui.drawCards(cards)
     local cardWidth = 100
     local cardHeight = 140
     local cardSpacing = 15
     local startX = 30
     local startY = 400
-    
-    -- 创建一个表来跟踪正在飞行的卡牌
-    local flyingCardIndices = {}
-    for _, flyingCard in ipairs(flyingCards) do
-        -- 计算卡牌在原始卡组中的索引
-        local originalIndex = math.floor((flyingCard.startX - startX) / (cardWidth + cardSpacing)) + 1
-        flyingCardIndices[originalIndex] = true
-    end
-    
+
     for i, card in ipairs(cards) do
-        -- 如果卡牌正在飞行，跳过绘制
-        if flyingCardIndices[i] then
-            goto continue
-        end
-        
         local x = startX + (i - 1) * (cardWidth + cardSpacing)
         local y = startY
-        
         -- Draw card background
         love.graphics.setColor(0.2, 0.2, 0.2)
         love.graphics.rectangle("fill", x, y, cardWidth, cardHeight)
-        
+
         -- Draw card border
         love.graphics.setColor(1, 1, 1)
         love.graphics.rectangle("line", x, y, cardWidth, cardHeight)
-        
+
         -- Draw card name
         love.graphics.setColor(1, 1, 1)
         love.graphics.print(card.name, x + 8, y + 8, 0, 1.1)
-        
+
         -- Draw card description
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.print(card.description, x + 8, y + 35, 0, 0.9)
-        
         -- Draw card type
         love.graphics.setColor(0.6, 0.6, 0.6)
         love.graphics.print(card.type, x + 8, y + 100, 0, 0.9)
-        
         -- Draw card damage
         if card.baseDamage then
             love.graphics.setColor(1, 0, 0)
             love.graphics.print(string.format("Damage: %d", card.baseDamage), x + 8, y + 120, 0, 0.9)
         end
-        
-        ::continue::
     end
 end
 
@@ -121,31 +103,31 @@ end
 function battle_ui.drawFlyingCards(flyingCards)
     local cardWidth = 100
     local cardHeight = 140
-    
+
     for _, flyingCard in ipairs(flyingCards) do
         local x = flyingCard.startX + (flyingCard.targetX - flyingCard.startX) * flyingCard.progress
         local y = flyingCard.startY + (flyingCard.targetY - flyingCard.startY) * flyingCard.progress
-        
+
         -- Draw card background
         love.graphics.setColor(0.2, 0.2, 0.2)
         love.graphics.rectangle("fill", x, y, cardWidth, cardHeight)
-        
+
         -- Draw card border
         love.graphics.setColor(1, 1, 1)
         love.graphics.rectangle("line", x, y, cardWidth, cardHeight)
-        
+
         -- Draw card name
         love.graphics.setColor(1, 1, 1)
         love.graphics.print(flyingCard.card.name, x + 8, y + 8, 0, 1.1)
-        
+
         -- Draw card description
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.print(flyingCard.card.description, x + 8, y + 35, 0, 0.9)
-        
+
         -- Draw card type
         love.graphics.setColor(0.6, 0.6, 0.6)
         love.graphics.print(flyingCard.card.type, x + 8, y + 100, 0, 0.9)
-        
+
         -- Draw card damage
         if flyingCard.card.baseDamage then
             love.graphics.setColor(1, 0, 0)

@@ -1,91 +1,97 @@
 local cards = {
     -- Attack cards
-    {
+    Strike = {
         name = "Strike",
         type = "attack",
-        baseEffect = {
-            {"damage", 6},
+        args = { arg1 = 6 },
+        effect_list = {
+            {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
-        description = "Deal 6 damage",
+        description = "Deal [arg1] damage",
         comboEffect = {
-            [2] = {damage = 12},
-            [3] = {damage = 18},
-            [4] = {damage = 24},
-            [5] = {damage = 30}
+            [2] = {arg1 = 12},
+            [3] = {arg1 = 18},
+            [4] = {arg1 = 24},
+            [5] = {arg1 = 30}
         }
     },
-    {
+    HeavyStrike = {
         name = "Heavy Strike",
         type = "attack",
-        baseEffect = {
-            {"damage", 8},
+        args = { arg1 = 8 },
+        effect_list = {
+            {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
-        description = "Deal 8 damage",
+        description = "Deal [arg1] damage",
         comboEffect = {
-            [2] = {damage = 16},
-            [3] = {damage = 24},
-            [4] = {damage = 32},
-            [5] = {damage = 40}
+            [2] = {arg1 = 16},
+            [3] = {arg1 = 24},
+            [4] = {arg1 = 32},
+            [5] = {arg1 = 40}
         }
     },
     -- Defense cards
-    {
+    Defend = {
         name = "Defend",
         type = "defense",
-        baseEffect = {
-            {"block", 5},
+        args = { arg1 = 5 },
+        effect_list = {
+            {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
         },
-        description = "Gain 5 block",
+        description = "Gain [arg1] block",
         comboEffect = {
-            [2] = {block = 10},
-            [3] = {block = 15},
-            [4] = {block = 20},
-            [5] = {block = 25}
+            [2] = {arg1 = 10},
+            [3] = {arg1 = 15},
+            [4] = {arg1 = 20},
+            [5] = {arg1 = 25}
         }
     },
-    {
+    IronArmor = {
         name = "Iron Armor",
         type = "defense",
-        baseEffect = {
-            {"block", 8}
+        args = { arg1 = 8 },
+        effect_list = {
+            {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
         },
-        description = "Gain 8 block",
+        description = "Gain [arg1] block",
         comboEffect = {
-            [2] = {block = 16},
-            [3] = {block = 24},
-            [4] = {block = 32},
-            [5] = {block = 40}
+            [2] = {arg1 = 16},
+            [3] = {arg1 = 24},
+            [4] = {arg1 = 32},
+            [5] = {arg1 = 40}
         }
     },
     -- Special cards
-    {
+    Rage = {
         name = "Rage",
         type = "special",
-        baseEffect = {
-            {"damage", 4},
-            {"block", 4}
+        args = { arg1 = 4, arg2 = 4 },
+        effect_list = {
+            {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
+            {effect_type ="block", effect_target = "self", effect_args = {"arg2"} },
         },
-        description = "Deal 4 damage, gain 4 block",
+        description = "Deal [arg1] damage, gain [arg2] block",
         comboEffect = {
-            [2] = {damage = 8, block = 8},
-            [3] = {damage = 12, block = 12},
-            [4] = {damage = 16, block = 16},
-            [5] = {damage = 20, block = 20}
+            [2] = {arg1 = 8, arg2 = 8},
+            [3] = {arg1 = 12, arg2 = 12},
+            [4] = {arg1 = 16, arg2 = 16},
+            [5] = {arg1 = 20, arg2 = 20}
         }
     },
-    {
+    BattleCry = {
         name = "Battle Cry",
         type = "special",
-        baseEffect = {
-            {"damage", 3},
-            {"block", 3}
+        args = { arg1 = 3, arg2 = 3 },
+        effect_list = {
+            {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
+            {effect_type ="block", effect_target = "self", effect_args = {"arg2"} },
         },
-        description = "Deal 3 damage, gain 3 block",
+        description = "Deal [arg1] damage, gain [arg2] block",
         comboEffect = {
-            [2] = {damage = 6, block = 6},
-            [3] = {damage = 9, block = 9},
-            [4] = {damage = 12, block = 12},
-            [5] = {damage = 15, block = 15}
+            [2] = {arg1 = 6, arg2 = 6},
+            [3] = {arg1 = 9, arg2 = 9},
+            [4] = {arg1 = 12, arg2 = 12},
+            [5] = {arg1 = 15, arg2 = 15}
         }
     }
 }

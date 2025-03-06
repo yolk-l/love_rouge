@@ -1,7 +1,19 @@
 local global = require "src.global"
 local stateMgr = require "src.state_mgr"
-local cardMgr = require "src.states.battle.card_mgr"
-local battle = require "src.states.battle.battle"
+local cardMgr = require "src.manager.card_mgr"
+local battle = require "src.states.battle"
+
+table.clone = function(t)
+    local clone = {}
+    for k, v in pairs(t) do
+        if type(v) == "table" then
+            clone[k] = table.clone(v)
+        else
+            clone[k] = v
+        end
+    end
+    return clone
+end
 
 function love.load()
     global.stateMgr = stateMgr.new()

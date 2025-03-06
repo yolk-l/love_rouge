@@ -9,21 +9,30 @@ local monsters = {
             intents = {
                 {
                     name = "Attack",
-                    description = "Deal 5 damage",
+                    description = "Deal [arg1] damage",
                     type = "attack",
-                    value = 5,
-                    trigger = "turn_start",
+                    args = { arg1 = 5 },
+                    effect_list = {
+                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "turn_start", trigger_args = {} },
+                    },
                     priority = 1
                 },
                 {
                     name = "Split",
-                    description = "Heal 5 HP",
+                    description = "Heal [arg1] HP. After [arg2] damage taken",
                     type = "heal",
-                    value = 5,
-                    trigger = "damage_taken",
-                    triggerValue = 15,
+                    args = { arg1 = 5, arg2 = 15 },
+                    effect_list = {
+                        {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    },
                     priority = 2
-                }
+                },
             }
         },
         {
@@ -34,19 +43,28 @@ local monsters = {
             intents = {
                 {
                     name = "Attack",
-                    description = "Deal 7 damage",
+                    description = "Deal [arg1] damage",
                     type = "attack",
-                    value = 7,
-                    trigger = "turn_start",
+                    args = { arg1 = 7 },
+                    effect_list = {
+                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "turn_start", trigger_args = {} },
+                    },
                     priority = 1
                 },
                 {
                     name = "Defensive Stance",
-                    description = "Gain 5 block",
+                    description = "Gain [arg1] block",
                     type = "shield",
-                    value = 5,
-                    trigger = "cards_generated",
-                    triggerValue = 3,
+                    args = { arg1 = 5 },
+                    effect_list = {
+                        {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "cards_generated", trigger_args = {} },
+                    },
                     priority = 2
                 }
             }
@@ -62,28 +80,41 @@ local monsters = {
             intents = {
                 {
                     name = "Strong Attack",
-                    description = "Deal 8 damage",
+                    description = "Deal [arg1] damage",
                     type = "attack",
-                    value = 8,
-                    trigger = "turn_start",
+                    args = { arg1 = 8 },
+                    effect_list = {
+                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "turn_start", trigger_args = {} },
+                    },
                     priority = 1
                 },
                 {
                     name = "Split",
-                    description = "Heal 10 HP",
+                    description = "Heal [arg1] HP. After [arg2] damage taken",
                     type = "heal",
-                    value = 10,
-                    trigger = "damage_taken",
-                    triggerValue = 20,
+                    args = { arg1 = 10, arg2 = 20 },
+                    effect_list = {
+                        {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    },
                     priority = 2
                 },
                 {
                     name = "Shield",
-                    description = "Gain 8 block",
+                    description = "Gain [arg1] block",
                     type = "shield",
-                    value = 8,
-                    trigger = "cards_generated",
-                    triggerValue = 4,
+                    args = { arg1 = 8 },
+                    effect_list = {
+                        {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "cards_generated", trigger_args = {} },
+                    },
                     priority = 3
                 }
             }
@@ -96,28 +127,41 @@ local monsters = {
             intents = {
                 {
                     name = "Strong Attack",
-                    description = "Deal 10 damage",
+                    description = "Deal [arg1] damage",
                     type = "attack",
-                    value = 10,
-                    trigger = "turn_start",
+                    args = { arg1 = 10 },
+                    effect_list = {
+                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "turn_start", trigger_args = {} },
+                    },
                     priority = 1
                 },
                 {
                     name = "Defensive Stance",
-                    description = "Gain 10 block",
+                    description = "Gain [arg1] block",
                     type = "shield",
-                    value = 10,
-                    trigger = "cards_generated",
-                    triggerValue = 3,
+                    args = { arg1 = 10 },
+                    effect_list = {
+                        {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "cards_generated", trigger_args = {} },
+                    },
                     priority = 2
                 },
                 {
                     name = "Rage",
-                    description = "Increase attack by 5",
+                    description = "Increase attack by [arg1]",
                     type = "buff_attack",
-                    value = 5,
-                    trigger = "damage_taken",
-                    triggerValue = 25,
+                    args = { arg1 = 5, arg2 = 20 },
+                    effect_list = {
+                        {effect_type ="buff_attack", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    },
                     priority = 3
                 }
             }
@@ -133,37 +177,54 @@ local monsters = {
             intents = {
                 {
                     name = "Strong Attack",
-                    description = "Deal 12 damage",
+                    description = "Deal [arg1] damage",
                     type = "attack",
-                    value = 12,
-                    trigger = "turn_start",
+                    args = { arg1 = 12 },
+                    effect_list = {
+                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "turn_start", trigger_args = {} },
+                    },
                     priority = 1
                 },
                 {
                     name = "Split",
-                    description = "Heal 15 HP",
+                    description = "Heal [arg1] HP. After [arg2] damage taken",
                     type = "heal",
-                    value = 15,
-                    trigger = "damage_taken",
-                    triggerValue = 30,
+                    args = { arg1 = 15, arg2 = 20 },
+                    effect_list = {
+                        {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    },
                     priority = 2
                 },
                 {
                     name = "Shield",
-                    description = "Gain 15 block",
+                    description = "Gain [arg1] block",
                     type = "shield",
-                    value = 15,
-                    trigger = "cards_generated",
-                    triggerValue = 5,
+                    args = { arg1 = 15 },
+                    effect_list = {
+                        {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "cards_generated", trigger_args = {} },
+                    },
                     priority = 3
                 },
                 {
                     name = "Rage",
-                    description = "Increase attack by 8",
+                    description = "Increase attack by [arg1]. After [arg2] damage taken",
                     type = "buff_attack",
-                    value = 8,
-                    trigger = "damage_taken",
-                    triggerValue = 50,
+                    args = { arg1 = 8, arg2 = 20 },
+                    effect_list = {
+                        {effect_type ="buff_attack", effect_target = "self", effect_args = {"arg1"} },
+                    },
+                    trigger =  {
+                        {trigger_type = "damage_taken", trigger_args = {"arg2"} },
+                    },
                     priority = 4
                 }
             }
