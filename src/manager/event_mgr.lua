@@ -2,6 +2,14 @@ local eventMgr = {}
 
 -- 事件监听器列表
 local listeners = {}
+-- 用于生成唯一ID的计数器
+local idCounter = 0
+
+-- 生成唯一的监听器ID
+local function generateUniqueId()
+    idCounter = idCounter + 1
+    return tostring(os.time()) .. "_" .. tostring(idCounter)
+end
 
 -- 注册事件监听器
 -- @param eventName 事件名称
@@ -13,7 +21,7 @@ function eventMgr.on(eventName, listener, context)
         listeners[eventName] = {}
     end
 
-    local listenerId = tostring(listener) .. tostring(math.random(1, 10000))
+    local listenerId = generateUniqueId()
 
     table.insert(listeners[eventName], {
         id = listenerId,
@@ -48,7 +56,17 @@ end
 function eventMgr.emit(eventName, ...)
     if not listeners[eventName] then return end
 
+    -- 创建监听器列表的副本，避免在遍历过程中移除监听器导致的问题
+    local listenersCopy = {}
     for _, listener in ipairs(listeners[eventName]) do
+        table.insert(listenersCopy, {
+            id = listener.id,
+            fn = listener.fn,
+            context = listener.context
+        })
+    end
+
+    for _, listener in ipairs(listenersCopy) do
         if listener.context then
             listener.fn(listener.context, ...)
         else
@@ -80,6 +98,7 @@ end
 -- 清除所有事件监听器
 function eventMgr.clear()
     listeners = {}
+    idCounter = 0
 end
 
 -- 获取事件列表
