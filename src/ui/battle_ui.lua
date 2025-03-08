@@ -15,7 +15,7 @@ function battle_ui.drawMonster(monster)
     -- 绘制怪物血条
     local healthBarWidth = 280
     local healthBarHeight = 20
-    local healthRatio = monster.health / monster.maxHealth
+    local healthRatio = monster:getHealthRatio()
     love.graphics.setColor(1, 0, 0)
     love.graphics.rectangle("fill", 260, 90, healthBarWidth, healthBarHeight)
     love.graphics.setColor(0, 1, 0)
@@ -24,24 +24,24 @@ function battle_ui.drawMonster(monster)
     love.graphics.rectangle("line", 260, 90, healthBarWidth, healthBarHeight)
 
     -- 显示怪物当前血量
-    love.graphics.print("Health: " .. monster.health .. " / " .. monster.maxHealth, 260, 120)
+    love.graphics.print("Health: " .. monster:getHealth() .. " / " .. monster:getMaxHealth(), 260, 120)
     
     -- 显示怪物格挡值
-    if monster.block > 0 then
+    if monster:getBlock() > 0 then
         love.graphics.setColor(0, 0.8, 1)
-        love.graphics.print("Block: " .. monster.block, 260, 140)
+        love.graphics.print("Block: " .. monster:getBlock(), 260, 140)
     end
     
-    -- 显示怪物攻击力
+    -- 显示怪物当前意图
     love.graphics.setColor(1, 0.5, 0)
-    love.graphics.print("Attack: " .. monster.attack, 260, 160)
+    love.graphics.print("Intent: " .. monster:getIntentDescription(), 260, 160)
 end
 
 -- 绘制玩家状态
 function battle_ui.drawPlayerHealth(player)
     local healthBarWidth = 200
     local healthBarHeight = 20
-    local healthPercentage = player.health / player.maxHealth
+    local healthPercentage = player:getHealthRatio()
     
     -- Draw health bar background
     love.graphics.setColor(0.5, 0.5, 0.5)
@@ -53,12 +53,11 @@ function battle_ui.drawPlayerHealth(player)
     
     -- Draw health text
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print(string.format("HP: %d/%d", player.health, player.maxHealth), 50, 280, 0, 1.2)
-    
+    love.graphics.print(string.format("HP: %d/%d", player:getHealth(), player:getMaxHealth()), 50, 280, 0, 1.2)
     -- Draw block value
-    if player.block > 0 then
+    if player:getBlock() > 0 then
         love.graphics.setColor(0, 0.8, 1)
-        love.graphics.print(string.format("Block: %d", player.block), 50, 320, 0, 1.2)
+        love.graphics.print(string.format("Block: %d", player:getBlock()), 50, 320, 0, 1.2)
     end
 end
 

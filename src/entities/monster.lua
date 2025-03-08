@@ -95,6 +95,44 @@ function mt:on_turn_end()
     })
 end
 
+-- 获取当前意图
+function mt:getCurrentIntent()
+    if not self.intents then return nil end
+    
+    -- 按优先级排序意图
+    local sortedIntents = {}
+    for _, intent in ipairs(self.intents) do
+        table.insert(sortedIntents, intent)
+    end
+    
+    table.sort(sortedIntents, function(a, b)
+        return (a.priority or 0) > (b.priority or 0)
+    end)
+    
+    -- 返回第一个满足触发条件的意图
+    for _, intent in ipairs(sortedIntents) do
+        if self:checkIntentTrigger(intent) then
+            return intent
+        end
+    end
+    
+    -- 如果没有满足条件的意图，返回第一个意图
+    return sortedIntents[1]
+end
+
+function mt:getIntentDescription()
+    local intent = self:getCurrentIntent()
+    if intent then
+        -- 替换描述中的参数
+        local description = intent.description
+        for argName, argValue in pairs(intent.args or {}) do
+            description = description:gsub("%[" .. argName .. "%]", tostring(argValue))
+        end
+        return intent.name .. ": " .. description
+    end
+    return "No intent"
+end
+
 function mt:draw()
     love.graphics.print(self.name, 300, 100)
     love.graphics.print("Health: " .. self.health, 300, 120)
@@ -116,6 +154,7 @@ function Monster.new(monsterData, battleType)
         intentListenerIds = {}
     }, mt)
 
+    print("monster: " , monster.name, monster.intents, monster.health)
     base_util.inject_comp(monster, attrComp)
     base_util.inject_comp(monster, intentComp)
     base_util.inject_comp(monster, targetComp)

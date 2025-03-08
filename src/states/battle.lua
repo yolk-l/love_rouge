@@ -27,7 +27,7 @@ function mt:onGenerateCardClick()
     -- 触发卡牌生成事件
     eventMgr.emit("cards_generated", {
         value = 1,
-        source = global.player
+        source = global.currentPlayer
     })
 end
 
@@ -37,7 +37,7 @@ function mt:onExecuteCardClick()
         self:disableButtons()
         -- 触发卡牌执行事件
         eventMgr.emit("cards_executed", {
-            source = global.player
+            source = global.currentPlayer
         })
     else
         print("No cards to execute! Generate cards first.")
@@ -74,7 +74,7 @@ function mt:load(params)
     -- 触发战斗开始事件
     eventMgr.emit("battle_start", {
         battleType = self.battleType,
-        source = global.player
+        source = global.currentPlayer
     })
 end
 
@@ -98,7 +98,7 @@ function mt:update(dt)
         
         -- 触发卡牌释放完成事件
         eventMgr.emit("cards_finished", {
-            source = global.player
+            source = global.currentPlayer
         })
     end
 
@@ -108,10 +108,11 @@ function mt:update(dt)
         if battleResult then
             if battleResult == global.battle_result.player_win then
                 print("Player won!")
+                global.charaterMgr:removeCharacter(global.camp.monster, currentMonster)
                 -- 触发战斗胜利事件
                 eventMgr.emit("battle_victory", {
                     battleType = self.battleType,
-                    source = global.player
+                    source = global.currentPlayer
                 })
                 global.stateMgr:changeState("map", {
                     completeBattleNode = true
@@ -121,7 +122,7 @@ function mt:update(dt)
                 -- 触发战斗失败事件
                 eventMgr.emit("battle_defeat", {
                     battleType = self.battleType,
-                    source = global.player
+                    source = global.currentPlayer
                 })
                 global.stateMgr:changeState("game_over")
             end
@@ -129,8 +130,8 @@ function mt:update(dt)
             -- 回合结束
             global.charaterMgr:on_turn_end()
             -- 触发回合结束事件
-            eventMgr.emit("player_turn_end", {
-                source = global.player
+            eventMgr.emit("turn_end", {
+                source = global.currentPlayer
             })
         end
     end
@@ -146,7 +147,7 @@ function mt:draw()
     battle_ui.drawMonster(monster)
     
     -- 绘制玩家
-    local player = global.charaterMgr:getCharacter(global.camp.player)[1]
+    local player = global.currentPlayer
     battle_ui.drawPlayerHealth(player)
     
     -- 绘制卡牌

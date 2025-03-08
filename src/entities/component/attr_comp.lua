@@ -3,7 +3,8 @@ local eventMgr = require "src.manager.event_mgr"
 
 local mt = {}
 
-function mt:applyDamage(caster, damage)
+function mt.applyDamage(self, caster, damage)
+    print("applyDamage", self:getCamp(), caster:getCamp(), damage)
     local originalDamage = damage
     
     if self.block > 0 then
@@ -36,9 +37,10 @@ function mt:applyDamage(caster, damage)
     end
 end
 
-function mt:applyBlock(caster, block)
+function mt.applyBlock(self, caster, block)
     local originalBlock = self.block
     self.block = self.block + block
+    print("applyBlock", self:getCamp(), caster:getCamp(), block, self.block, self:getBlock())
     
     -- 触发格挡事件
     eventMgr.emit(global.events.CHARACTER_BLOCKED, {
@@ -49,7 +51,8 @@ function mt:applyBlock(caster, block)
     })
 end
 
-function mt:applyHeal(caster, heal)
+function mt.applyHeal(self, caster, heal)
+    print("applyHeal", self:getCamp(), caster:getCamp(), heal)
     local originalHealth = self.health
     self.health = math.min(self.maxHealth, self.health + heal)
     local actualHeal = self.health - originalHealth
@@ -63,16 +66,28 @@ function mt:applyHeal(caster, heal)
     })
 end
 
-function mt:is_defeated()
+function mt.is_defeated(self)
     return self.health <= 0
 end
 
-function mt:getEnemy()
-    if self.camp == global.camp.player then
-        return global.charaterMgr:getCharacter(global.camp.monster)[1]
-    else
-        return global.charaterMgr:getCharacter(global.camp.player)[1]
-    end
+function mt.getHealthRatio(self)
+    return self.health / self.maxHealth
+end
+
+function mt.getHealth(self)
+    return self.health
+end
+
+function mt.getMaxHealth(self)
+    return self.maxHealth
+end
+
+function mt.getBlock(self)
+    return self.block
+end
+
+function mt.getCamp(self)
+    return self.camp
 end
 
 return mt

@@ -7,7 +7,7 @@ global.cardMgr = nil
 global.stateMgr = nil
 global.battle = nil
 global.charaterMgr = nil
-global.player = nil
+global.currentPlayer = nil
 global.eventMgr = require "src.manager.event_mgr"
 
 global.camp = {

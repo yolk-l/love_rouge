@@ -45,7 +45,12 @@ function effectMgr.damage(caster, target, effectArgs)
 end
 
 function effectMgr.block(caster, target, effectArgs)
-    target:applyBlock(caster, effectArgs[1])
+    local blockAmount = effectArgs[1]
+    if type(blockAmount) == "number" then
+        target:applyBlock(caster, blockAmount)
+    else
+        print("Warning: Invalid block amount:", blockAmount)
+    end
 end
 
 function effectMgr.heal(caster, target, effectArgs)

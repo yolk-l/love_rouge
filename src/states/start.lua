@@ -8,6 +8,7 @@ mt.__index = mt
 function mt:onStartClick()
     global.stateMgr:changeState("map") -- 使用状态管理器切换状态
     global.currentPlayer = player.new()
+    global.charaterMgr:addCharacter(global.camp.player, global.currentPlayer)
 end
 
 function mt:load()

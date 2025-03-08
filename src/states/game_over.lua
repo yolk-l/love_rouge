@@ -7,7 +7,9 @@ mt.__index = mt
 
 function mt:onRestartClick()
     global.stateMgr:changeState("map", { restart = true })
+    global.charaterMgr:removeCharacter(global.camp.player, global.currentPlayer)
     global.currentPlayer = player.new()
+    global.charaterMgr:addCharacter(global.camp.player, global.currentPlayer)
 end
 
 function mt:onQuitClick()

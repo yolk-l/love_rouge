@@ -45,14 +45,12 @@ function Player.new()
         damageTaken = 0,
         cardsGenerated = 0,
         camp = global.camp.player,
+        turnCount = 0
     }, mt)
 
     base_util.inject_comp(player, attrComp)
     base_util.inject_comp(player, targetComp)
-    
-    -- 设置全局玩家引用
-    global.player = player
-    
+
     return player
 end
 

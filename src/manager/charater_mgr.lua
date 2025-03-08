@@ -43,7 +43,13 @@ function mt:is_battle_over()
 end
 
 function mt:on_turn_end()
+    -- 处理怪物回合结束
     for _, character in ipairs(self.characters[global.camp.monster]) do
+        character:on_turn_end()
+    end
+    
+    -- 处理玩家回合结束
+    for _, character in ipairs(self.characters[global.camp.player]) do
         character:on_turn_end()
     end
 end
@@ -59,7 +65,7 @@ local charaterMgr = {}
 function charaterMgr.new()
     local self = setmetatable({}, mt)
     self.characters = {}
-    self.characters[global.camp.player] = {player.new()}
+    self.characters[global.camp.player] = {}
     self.characters[global.camp.monster] = {}
     return self
 end
