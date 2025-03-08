@@ -3,7 +3,7 @@ local eventMgr = require "src.manager.event_mgr"
 
 local mt = {}
 
-function mt.applyDamage(self, caster, damage)
+function mt:applyDamage(caster, damage)
     print("applyDamage", self:getCamp(), caster:getCamp(), damage)
     local originalDamage = damage
     
@@ -37,7 +37,7 @@ function mt.applyDamage(self, caster, damage)
     end
 end
 
-function mt.applyBlock(self, caster, block)
+function mt:applyBlock(caster, block)
     local originalBlock = self.block
     self.block = self.block + block
     print("applyBlock", self:getCamp(), caster:getCamp(), block, self.block, self:getBlock())
@@ -51,7 +51,7 @@ function mt.applyBlock(self, caster, block)
     })
 end
 
-function mt.applyHeal(self, caster, heal)
+function mt:applyHeal(caster, heal)
     print("applyHeal", self:getCamp(), caster:getCamp(), heal)
     local originalHealth = self.health
     self.health = math.min(self.maxHealth, self.health + heal)
@@ -66,27 +66,27 @@ function mt.applyHeal(self, caster, heal)
     })
 end
 
-function mt.is_defeated(self)
+function mt:is_defeated()
     return self.health <= 0
 end
 
-function mt.getHealthRatio(self)
+function mt:getHealthRatio()
     return self.health / self.maxHealth
 end
 
-function mt.getHealth(self)
+function mt:getHealth()
     return self.health
 end
 
-function mt.getMaxHealth(self)
+function mt:getMaxHealth()
     return self.maxHealth
 end
 
-function mt.getBlock(self)
+function mt:getBlock()
     return self.block
 end
 
-function mt.getCamp(self)
+function mt:getCamp()
     return self.camp
 end
 

@@ -2,11 +2,11 @@ local global = require "src.global"
 
 local mt = {}
 
-function mt.getEnemy(self)
+function mt:getEnemy()
     return global.charaterMgr:getEnemiesByCamp(self.camp)[1]
 end
 
-function mt.getSelf(self)
+function mt:getSelf()
     return self
 end
 
