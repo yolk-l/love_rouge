@@ -35,7 +35,7 @@ end
 -- 封装卡牌效果
 function mt:executeCard(cardData)
     local count = self.cardCounts[cardData.name]
-    local caster = global.currentPlayer
+    local caster = global.player
     -- 应用基础效果，根据相同卡牌数量提升效果数值
     for _, effect in ipairs(cardData.effect_list) do
         local effectType = effect.effect_type

@@ -12,6 +12,10 @@ function mt:addCharacter(camp, character)
 end
 
 function mt:removeCharacter(camp, character)
+    if not character then
+        self.characters[camp] = {}
+        return
+    end
     table.remove(self.characters[camp], character)
 end
 
@@ -40,24 +44,6 @@ function mt:is_battle_over()
         return global.battle_result.player_win
     end
     return false
-end
-
-function mt:on_turn_end()
-    -- 处理怪物回合结束
-    for _, character in ipairs(self.characters[global.camp.monster]) do
-        character:on_turn_end()
-    end
-    
-    -- 处理玩家回合结束
-    for _, character in ipairs(self.characters[global.camp.player]) do
-        character:on_turn_end()
-    end
-end
-
-function mt:on_turn_start()
-    for _, character in ipairs(self.characters[global.camp.player]) do
-        character:on_turn_start()
-    end
 end
 
 local charaterMgr = {}

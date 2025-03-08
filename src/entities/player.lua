@@ -16,20 +16,6 @@ function mt:incrementCardsGenerated()
     return self.cardsGenerated
 end
 
-function mt:on_turn_start()
-    -- 触发玩家回合开始事件
-    eventMgr.emit("player_turn_start", {
-        source = self
-    })
-end
-
-function mt:on_turn_end()
-    -- 触发玩家回合结束事件
-    eventMgr.emit("player_turn_end", {
-        source = self
-    })
-end
-
 function mt:draw()
     -- Draw player here
 end
@@ -44,13 +30,13 @@ function Player.new()
         deck = {},
         damageTaken = 0,
         cardsGenerated = 0,
-        camp = global.camp.player,
-        turnCount = 0
+        camp = global.camp.player
     }, mt)
 
     base_util.inject_comp(player, attrComp)
     base_util.inject_comp(player, targetComp)
 
+    global.player = player
     return player
 end
 

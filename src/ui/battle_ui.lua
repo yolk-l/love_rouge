@@ -1,3 +1,5 @@
+local base_util = require "src.utils.base_util"
+
 local battle_ui = {}
 
 -- 绘制怪物
@@ -61,6 +63,59 @@ function battle_ui.drawPlayerHealth(player)
     end
 end
 
+-- 获取卡牌类型对应的颜色
+local function getCardTypeColor(cardType)
+    if cardType == "attack" then
+        return {0.8, 0.2, 0.2} -- 红色
+    elseif cardType == "defense" then
+        return {0.2, 0.6, 0.8} -- 蓝色
+    elseif cardType == "skill" then
+        return {0.2, 0.8, 0.2} -- 绿色
+    elseif cardType == "power" then
+        return {0.8, 0.2, 0.8} -- 紫色
+    else
+        return {0.6, 0.6, 0.6} -- 灰色（默认）
+    end
+end
+
+-- 自适应文本换行
+local function drawWrappedText(text, x, y, width, scale)
+    scale = scale or 1
+    local font = love.graphics.getFont()
+    local words = {}
+    for word in text:gmatch("%S+") do
+        table.insert(words, word)
+    end
+    
+    local lines = {}
+    local currentLine = ""
+    
+    for _, word in ipairs(words) do
+        local testLine = currentLine
+        if testLine ~= "" then
+            testLine = testLine .. " "
+        end
+        testLine = testLine .. word
+        
+        if font:getWidth(testLine) * scale <= width then
+            currentLine = testLine
+        else
+            table.insert(lines, currentLine)
+            currentLine = word
+        end
+    end
+    
+    if currentLine ~= "" then
+        table.insert(lines, currentLine)
+    end
+    
+    for i, line in ipairs(lines) do
+        love.graphics.print(line, x, y + (i-1) * font:getHeight() * scale, 0, scale)
+    end
+    
+    return #lines * font:getHeight() * scale
+end
+
 -- 绘制卡牌
 function battle_ui.drawCards(cards)
     local cardWidth = 100
@@ -72,29 +127,35 @@ function battle_ui.drawCards(cards)
     for i, card in ipairs(cards) do
         local x = startX + (i - 1) * (cardWidth + cardSpacing)
         local y = startY
+        
+        -- 获取卡牌类型颜色
+        local typeColor = getCardTypeColor(card.type)
+        
         -- Draw card background
         love.graphics.setColor(0.2, 0.2, 0.2)
         love.graphics.rectangle("fill", x, y, cardWidth, cardHeight)
 
-        -- Draw card border
-        love.graphics.setColor(1, 1, 1)
+        -- Draw card border with type color
+        love.graphics.setColor(typeColor)
+        love.graphics.setLineWidth(2)
         love.graphics.rectangle("line", x, y, cardWidth, cardHeight)
+        love.graphics.setLineWidth(1)
 
         -- Draw card name
         love.graphics.setColor(1, 1, 1)
         love.graphics.print(card.name, x + 8, y + 8, 0, 1.1)
 
-        -- Draw card description
+        -- Draw card description with replaced parameters and text wrapping
         love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.print(card.description, x + 8, y + 35, 0, 0.9)
-        -- Draw card type
-        love.graphics.setColor(0.6, 0.6, 0.6)
-        love.graphics.print(card.type, x + 8, y + 100, 0, 0.9)
-        -- Draw card damage
-        if card.baseDamage then
-            love.graphics.setColor(1, 0, 0)
-            love.graphics.print(string.format("Damage: %d", card.baseDamage), x + 8, y + 120, 0, 0.9)
-        end
+        local description = base_util.replaceParams(card.description, card.args)
+        local descHeight = drawWrappedText(description, x + 8, y + 35, cardWidth - 16, 0.9)
+        
+        -- Draw card type (centered and lower)
+        love.graphics.setColor(typeColor)
+        local font = love.graphics.getFont()
+        local typeText = card.type:gsub("^%l", string.upper) -- Capitalize first letter
+        local typeWidth = font:getWidth(typeText) * 0.9
+        love.graphics.print(typeText, x + (cardWidth - typeWidth) / 2, y + 110, 0, 0.9)
     end
 end
 
@@ -106,32 +167,35 @@ function battle_ui.drawFlyingCards(flyingCards)
     for _, flyingCard in ipairs(flyingCards) do
         local x = flyingCard.startX + (flyingCard.targetX - flyingCard.startX) * flyingCard.progress
         local y = flyingCard.startY + (flyingCard.targetY - flyingCard.startY) * flyingCard.progress
+        
+        -- 获取卡牌类型颜色
+        local typeColor = getCardTypeColor(flyingCard.card.type)
 
         -- Draw card background
         love.graphics.setColor(0.2, 0.2, 0.2)
         love.graphics.rectangle("fill", x, y, cardWidth, cardHeight)
 
-        -- Draw card border
-        love.graphics.setColor(1, 1, 1)
+        -- Draw card border with type color
+        love.graphics.setColor(typeColor)
+        love.graphics.setLineWidth(2)
         love.graphics.rectangle("line", x, y, cardWidth, cardHeight)
+        love.graphics.setLineWidth(1)
 
         -- Draw card name
         love.graphics.setColor(1, 1, 1)
         love.graphics.print(flyingCard.card.name, x + 8, y + 8, 0, 1.1)
 
-        -- Draw card description
+        -- Draw card description with replaced parameters and text wrapping
         love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.print(flyingCard.card.description, x + 8, y + 35, 0, 0.9)
+        local description = base_util.replaceParams(flyingCard.card.description, flyingCard.card.args)
+        local descHeight = drawWrappedText(description, x + 8, y + 35, cardWidth - 16, 0.9)
 
-        -- Draw card type
-        love.graphics.setColor(0.6, 0.6, 0.6)
-        love.graphics.print(flyingCard.card.type, x + 8, y + 100, 0, 0.9)
-
-        -- Draw card damage
-        if flyingCard.card.baseDamage then
-            love.graphics.setColor(1, 0, 0)
-            love.graphics.print(string.format("Damage: %d", flyingCard.card.baseDamage), x + 8, y + 120, 0, 0.9)
-        end
+        -- Draw card type (centered and lower)
+        love.graphics.setColor(typeColor)
+        local font = love.graphics.getFont()
+        local typeText = flyingCard.card.type:gsub("^%l", string.upper) -- Capitalize first letter
+        local typeWidth = font:getWidth(typeText) * 0.9
+        love.graphics.print(typeText, x + (cardWidth - typeWidth) / 2, y + 110, 0, 0.9)
     end
 end
 

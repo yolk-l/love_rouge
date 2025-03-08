@@ -7,7 +7,7 @@ global.cardMgr = nil
 global.stateMgr = nil
 global.battle = nil
 global.charaterMgr = nil
-global.currentPlayer = nil
+global.player = nil
 global.eventMgr = require "src.manager.event_mgr"
 
 global.camp = {
@@ -26,12 +26,6 @@ global.events = {
     BATTLE_START = "battle_start",
     BATTLE_VICTORY = "battle_victory",
     BATTLE_DEFEAT = "battle_defeat",
-    
-    -- 回合相关事件
-    TURN_START = "turn_start",
-    TURN_END = "turn_end",
-    PLAYER_TURN_START = "player_turn_start",
-    PLAYER_TURN_END = "player_turn_end",
     
     -- 卡牌相关事件
     CARDS_GENERATED = "cards_generated",

@@ -1,3 +1,5 @@
+local intents = require "conf.intents"
+
 local monsters = {
     -- Normal monsters
     normal = {
@@ -5,76 +7,27 @@ local monsters = {
             name = "Small Slime",
             health = 30,
             maxHealth = 30,
-            attack = 5,
-            intents = {
-                {
-                    name = "Attack",
-                    description = "Deal [arg1] damage",
-                    type = "attack",
-                    args = { arg1 = 5 },
-                    effect_list = {
-                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "turn_start",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 1
-                },
-                {
-                    name = "Split",
-                    description = "Heal [arg1] HP. After [arg2] damage taken",
-                    type = "heal",
-                    args = { arg1 = 5, arg2 = 15 },
-                    effect_list = {
-                        {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "character_damaged",
-                        required_count = "arg2",
-                        one_time = true
-                    },
-                    priority = 2
-                },
+            intent_refs = {
+                { intent_type = "attack", intent_id = "basic_attack" },
+                { intent_type = "healing", intent_id = "slime_split" }
             }
         },
         {
             name = "Goblin Warrior",
             health = 40,
             maxHealth = 40,
-            attack = 7,
-            intents = {
-                {
-                    name = "Attack",
-                    description = "Deal [arg1] damage",
-                    type = "attack",
-                    args = { arg1 = 7 },
-                    effect_list = {
-                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "turn_start",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 1
-                },
-                {
-                    name = "Defensive Stance",
-                    description = "Gain [arg1] block",
-                    type = "shield",
-                    args = { arg1 = 5 },
-                    effect_list = {
-                        {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "cards_generated",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 2
-                }
+            intent_refs = {
+                { intent_type = "attack", intent_id = "basic_attack", args_override = { arg1 = 7, arg2 = 2 } },
+                { intent_type = "defense", intent_id = "defensive_stance" }
+            }
+        },
+        {
+            name = "Counter Guardian",
+            health = 35,
+            maxHealth = 35,
+            intent_refs = {
+                { intent_type = "attack", intent_id = "basic_attack", args_override = { arg1 = 4, arg2 = 3 } },
+                { intent_type = "buff", intent_id = "counter_attack", args_override = { arg1 = 5 } }
             }
         }
     },
@@ -84,106 +37,30 @@ local monsters = {
             name = "Elite Slime King",
             health = 60,
             maxHealth = 60,
-            attack = 8,
-            intents = {
-                {
-                    name = "Strong Attack",
-                    description = "Deal [arg1] damage",
-                    type = "attack",
-                    args = { arg1 = 8 },
-                    effect_list = {
-                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "turn_start",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 1
-                },
-                {
-                    name = "Split",
-                    description = "Heal [arg1] HP. After [arg2] damage taken",
-                    type = "heal",
-                    args = { arg1 = 10, arg2 = 20 },
-                    effect_list = {
-                        {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "character_damaged",
-                        required_count = "arg2",
-                        one_time = true
-                    },
-                    priority = 2
-                },
-                {
-                    name = "Shield",
-                    description = "Gain [arg1] block",
-                    type = "shield",
-                    args = { arg1 = 8 },
-                    effect_list = {
-                        {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "cards_generated",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 3
-                }
+            intent_refs = {
+                { intent_type = "attack", intent_id = "strong_attack" },
+                { intent_type = "healing", intent_id = "elite_split" },
+                { intent_type = "defense", intent_id = "basic_shield", args_override = { arg1 = 8 } }
             }
         },
         {
             name = "Elite Goblin King",
             health = 70,
             maxHealth = 70,
-            attack = 10,
-            intents = {
-                {
-                    name = "Strong Attack",
-                    description = "Deal [arg1] damage",
-                    type = "attack",
-                    args = { arg1 = 10 },
-                    effect_list = {
-                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "turn_start",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 1
-                },
-                {
-                    name = "Defensive Stance",
-                    description = "Gain [arg1] block",
-                    type = "shield",
-                    args = { arg1 = 10 },
-                    effect_list = {
-                        {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "cards_generated",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 2
-                },
-                {
-                    name = "Rage",
-                    description = "Increase attack by [arg1]",
-                    type = "buff_attack",
-                    args = { arg1 = 5, arg2 = 20 },
-                    effect_list = {
-                        {effect_type ="buff_attack", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "character_damaged",
-                        required_count = "arg2",
-                        one_time = true
-                    },
-                    priority = 3
-                }
+            intent_refs = {
+                { intent_type = "attack", intent_id = "strong_attack", args_override = { arg1 = 10, arg2 = 3 } },
+                { intent_type = "defense", intent_id = "strong_shield" },
+                { intent_type = "buff", intent_id = "rage" }
+            }
+        },
+        {
+            name = "Elite Counter Guardian",
+            health = 65,
+            maxHealth = 65,
+            intent_refs = {
+                { intent_type = "attack", intent_id = "strong_attack", args_override = { arg1 = 8, arg2 = 4 } },
+                { intent_type = "buff", intent_id = "counter_attack", args_override = { arg1 = 8 } },
+                { intent_type = "defense", intent_id = "strong_shield" }
             }
         }
     },
@@ -193,68 +70,22 @@ local monsters = {
             name = "Slime Emperor",
             health = 100,
             maxHealth = 100,
-            attack = 12,
-            intents = {
-                {
-                    name = "Strong Attack",
-                    description = "Deal [arg1] damage",
-                    type = "attack",
-                    args = { arg1 = 12 },
-                    effect_list = {
-                        {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "turn_start",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 1
-                },
-                {
-                    name = "Split",
-                    description = "Heal [arg1] HP. After [arg2] damage taken",
-                    type = "heal",
-                    args = { arg1 = 15, arg2 = 20 },
-                    effect_list = {
-                        {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "character_damaged",
-                        required_count = "arg2",
-                        one_time = true
-                    },
-                    priority = 2
-                },
-                {
-                    name = "Shield",
-                    description = "Gain [arg1] block",
-                    type = "shield",
-                    args = { arg1 = 15 },
-                    effect_list = {
-                        {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "cards_generated",
-                        required_count = 1,
-                        one_time = true
-                    },
-                    priority = 3
-                },
-                {
-                    name = "Rage",
-                    description = "Increase attack by [arg1]. After [arg2] damage taken",
-                    type = "buff_attack",
-                    args = { arg1 = 8, arg2 = 20 },
-                    effect_list = {
-                        {effect_type ="buff_attack", effect_target = "self", effect_args = {"arg1"} },
-                    },
-                    trigger = {
-                        event = "character_damaged",
-                        required_count = "arg2",
-                        one_time = true
-                    },
-                    priority = 4
-                }
+            intent_refs = {
+                { intent_type = "attack", intent_id = "very_strong_attack" },
+                { intent_type = "healing", intent_id = "boss_split" },
+                { intent_type = "defense", intent_id = "strong_shield", args_override = { arg1 = 15 } },
+                { intent_type = "buff", intent_id = "boss_rage" }
+            }
+        },
+        {
+            name = "Master of Counters",
+            health = 90,
+            maxHealth = 90,
+            intent_refs = {
+                { intent_type = "attack", intent_id = "strong_attack", args_override = { arg1 = 10, arg2 = 4 } },
+                { intent_type = "buff", intent_id = "counter_attack", args_override = { arg1 = 12 } },
+                { intent_type = "defense", intent_id = "strong_shield", args_override = { arg1 = 12 } },
+                { intent_type = "buff", intent_id = "rage", args_override = { arg1 = 6, arg2 = 15 } }
             }
         }
     }
