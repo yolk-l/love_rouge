@@ -6,6 +6,7 @@ local global = require "src.global"
 local intentComp = require "src.entities.component.intent_comp"
 local targetComp = require "src.entities.component.target_comp"
 local intents = require "conf.intents"
+local buffMgr = require "src.manager.buff_mgr"
 
 local mt = {}
 mt.__index = mt
@@ -125,30 +126,41 @@ function mt:executeIntent(intent)
         
         local effectArgs = {}
         
-        if not effect.effect_args then
-            print("Warning: Effect has no effect_args")
-            goto continue
-        end
-        
-        if not intent.args then
-            print("Warning: Intent has no args")
-            goto continue
-        end
-        
-        for _, argName in ipairs(effect.effect_args) do
-            local argValue = intent.args[argName]
-            if not argValue then
-                print("Warning: Arg not found in intent: " .. argName)
+        -- 特殊处理add_buff效果类型
+        if effectType == "add_buff" then
+            -- 对于add_buff效果，直接使用effect_args中的buff引用
+            effectArgs = effect.effect_args
+            
+            local msg = string.format("Monster %s intent: %s, adding buff: %s", 
+                self.name, intent.name, effectArgs[1].buff_id)
+            print(msg)
+        else
+            -- 对于其他效果类型，正常处理参数
+            if not effect.effect_args then
+                print("Warning: Effect has no effect_args")
                 goto continue
             end
-            table.insert(effectArgs, argValue)
+            
+            if not intent.args then
+                print("Warning: Intent has no args")
+                goto continue
+            end
+            
+            for _, argName in ipairs(effect.effect_args) do
+                local argValue = intent.args[argName]
+                if not argValue then
+                    print("Warning: Arg not found in intent: " .. argName)
+                    goto continue
+                end
+                table.insert(effectArgs, argValue)
+            end
+            
+            local msg = string.format("Monster %s intent: %s, effect: %s", self.name, intent.name, effectType)
+            for i, argValue in ipairs(effectArgs) do
+                msg = msg .. " arg" .. i .. "=" .. argValue
+            end
+            print(msg)
         end
-        
-        local msg = string.format("Monster %s intent: %s, effect: %s\n", self.name, intent.name, effectType)
-        for i, argValue in ipairs(effectArgs) do
-            msg = msg .. "arg" .. i .. "=" .. argValue
-        end
-        print(msg)
         
         effectMgr.excuteEffect(self, effectType, effectTarget, effectArgs)
         
@@ -268,6 +280,14 @@ function mt:getIntentDescription()
     return "No intent"
 end
 
+-- 获取所有激活的buff
+function mt:getActiveBuffs()
+    if self.buffMgr then
+        return self.buffMgr:getActiveBuffs()
+    end
+    return {}
+end
+
 function mt:draw()
     love.graphics.print(self.name, 300, 100)
     love.graphics.print("Health: " .. self.health, 300, 120)
@@ -282,6 +302,8 @@ function Monster.new(monsterData, battleType)
         maxHealth = monsterData.health,
         type = battleType,
         block = 0,
+        strength = monsterData.strength or 0,
+        dexterity = monsterData.dexterity or 0,
         camp = global.camp.monster,
         intentListenerIds = {}
     }, mt)
@@ -293,6 +315,9 @@ function Monster.new(monsterData, battleType)
     base_util.inject_comp(monster, attrComp)
     base_util.inject_comp(monster, intentComp)
     base_util.inject_comp(monster, targetComp)
+    
+    -- 创建buff管理器
+    monster.buffMgr = buffMgr.new(monster)
     
     -- 注册意图监听器
     monster:registerIntentListeners()

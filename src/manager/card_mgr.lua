@@ -1,6 +1,8 @@
 local global = require "src.global"
 local cards = require "conf.cards"
 local effectMgr = require "src.manager.effect_mgr"
+local eventMgr = require "src.manager.event_mgr"
+
 local mt = {}
 mt.__index = mt
 
@@ -34,30 +36,62 @@ end
 
 -- 封装卡牌效果
 function mt:executeCard(cardData)
+    if not cardData then
+        print("Warning: Attempted to execute nil card")
+        return
+    end
+    
     local count = self.cardCounts[cardData.name]
     local caster = global.player
+    
     -- 应用基础效果，根据相同卡牌数量提升效果数值
     for _, effect in ipairs(cardData.effect_list) do
         local effectType = effect.effect_type
         local effect_target = effect.effect_target
+        
         -- 如果有相同卡牌，根据comboEffect提升效果数值
         local comboArgs = nil
-        if count > 1 and cardData.comboEffect and cardData.comboEffect[count] and cardData.comboEffect[count][effectType] then
-            comboArgs = cardData.comboEffect[count][effectType]
-        end
-        local effectArgs = {}
-        for _, arg_name in ipairs(effect.effect_args) do
-            local argValue = cardData.args[arg_name]
-            if comboArgs then
-                argValue = comboArgs[arg_name] or argValue
+        if count > 1 and cardData.comboEffect and cardData.comboEffect[count] then
+            -- 新的combo效果格式，按效果类型分类
+            if cardData.comboEffect[count][effectType] then
+                comboArgs = cardData.comboEffect[count][effectType]
             end
+        end
+        
+        local effectArgs = {}
+        
+        -- 对于所有效果类型，正常处理参数
+        for _, arg_name in ipairs(effect.effect_args) do
+            -- 处理负值参数，如"-arg1"
+            local isNegative = false
+            local processedArgName = arg_name
+            
+            if type(arg_name) == "string" and arg_name:sub(1, 1) == "-" then
+                isNegative = true
+                processedArgName = arg_name:sub(2)
+            end
+            
+            local argValue = cardData.args[processedArgName]
+            
+            -- 应用combo效果
+            if comboArgs and comboArgs[processedArgName] then
+                argValue = comboArgs[processedArgName]
+            end
+            
+            -- 如果是负值参数，取反
+            if isNegative then
+                argValue = -argValue
+            end
+            
             table.insert(effectArgs, argValue)
         end
+        
         local msg = string.format("Card %s effect: %s", cardData.name, effectType)
         for i, argValue in ipairs(effectArgs) do
-            msg = msg .. "arg" .. i .. "=" .. argValue
+            msg = msg .. " arg" .. i .. "=" .. argValue
         end
         print(msg)
+        
         effectMgr.excuteEffect(caster, effectType, effect_target, effectArgs)
     end
 end
@@ -130,6 +164,68 @@ function mt:reset()
     self.flyingCards = {}
 end
 
+-- 卡组管理功能
+-- 添加卡牌到玩家卡组
+function mt:addCardToDeck(cardName)
+    if not cards[cardName] then
+        print("Warning: Attempted to add invalid card: " .. cardName)
+        return false
+    end
+    
+    local cardData = table.clone(cards[cardName])
+    table.insert(self.deck, cardData)
+    
+    -- 触发卡牌添加事件
+    eventMgr.emit("card_added_to_deck", {
+        card = cardData,
+        source = global.player
+    })
+    
+    return true
+end
+
+-- 从卡组中移除卡牌
+function mt:removeCardFromDeck(index)
+    if not self.deck[index] then
+        print("Warning: Attempted to remove invalid card index: " .. index)
+        return false
+    end
+    
+    local removedCard = self.deck[index]
+    table.remove(self.deck, index)
+    
+    -- 触发卡牌移除事件
+    eventMgr.emit("card_removed_from_deck", {
+        card = removedCard,
+        source = global.player
+    })
+    
+    return removedCard
+end
+
+-- 获取玩家卡组
+function mt:getDeck()
+    return self.deck
+end
+
+-- 获取随机卡牌（用于商店和事件）
+function mt:getRandomCard(cardType)
+    local availableCards = {}
+    
+    for name, cardData in pairs(cards) do
+        if not cardType or cardData.type == cardType then
+            table.insert(availableCards, name)
+        end
+    end
+    
+    if #availableCards == 0 then
+        return nil
+    end
+    
+    local randomCardName = availableCards[math.random(1, #availableCards)]
+    return table.clone(cards[randomCardName])
+end
+
 local CardMgr = {}
 
 function CardMgr.new()
@@ -139,7 +235,8 @@ function CardMgr.new()
         isReleasingCards = false,
         cardReleaseTimer = 0,
         flyingCards = {},
-        cardCounts = {}
+        cardCounts = {},
+        deck = {} -- 玩家卡组
     }, mt)
 end
 

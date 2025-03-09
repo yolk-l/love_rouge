@@ -9,10 +9,10 @@ local cards = {
         },
         description = "Deal [arg1] damage",
         comboEffect = {
-            [2] = {arg1 = 12},
-            [3] = {arg1 = 18},
-            [4] = {arg1 = 24},
-            [5] = {arg1 = 30}
+            [2] = {damage = {arg1 = 12}},
+            [3] = {damage = {arg1 = 18}},
+            [4] = {damage = {arg1 = 24}},
+            [5] = {damage = {arg1 = 30}}
         }
     },
     HeavyStrike = {
@@ -24,10 +24,10 @@ local cards = {
         },
         description = "Deal [arg1] damage",
         comboEffect = {
-            [2] = {arg1 = 16},
-            [3] = {arg1 = 24},
-            [4] = {arg1 = 32},
-            [5] = {arg1 = 40}
+            [2] = {damage = {arg1 = 16}},
+            [3] = {damage = {arg1 = 24}},
+            [4] = {damage = {arg1 = 32}},
+            [5] = {damage = {arg1 = 40}}
         }
     },
     -- Defense cards
@@ -40,10 +40,10 @@ local cards = {
         },
         description = "Gain [arg1] block",
         comboEffect = {
-            [2] = {arg1 = 10},
-            [3] = {arg1 = 15},
-            [4] = {arg1 = 20},
-            [5] = {arg1 = 25}
+            [2] = {block = {arg1 = 10}},
+            [3] = {block = {arg1 = 15}},
+            [4] = {block = {arg1 = 20}},
+            [5] = {block = {arg1 = 25}}
         }
     },
     IronArmor = {
@@ -55,43 +55,118 @@ local cards = {
         },
         description = "Gain [arg1] block",
         comboEffect = {
-            [2] = {arg1 = 16},
-            [3] = {arg1 = 24},
-            [4] = {arg1 = 32},
-            [5] = {arg1 = 40}
+            [2] = {block = {arg1 = 16}},
+            [3] = {block = {arg1 = 24}},
+            [4] = {block = {arg1 = 32}},
+            [5] = {block = {arg1 = 40}}
         }
     },
-    -- Special cards
-    Rage = {
-        name = "Rage",
-        type = "special",
-        args = { arg1 = 4, arg2 = 4 },
+    -- Buff cards
+    Strengthen = {
+        name = "Strengthen",
+        type = "skill",
+        args = { arg1 = 2 },
         effect_list = {
-            {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
-            {effect_type ="block", effect_target = "self", effect_args = {"arg2"} },
+            {
+                effect_type = "add_strength", 
+                effect_target = "self", 
+                effect_args = {"arg1"}
+            },
         },
-        description = "Deal [arg1] damage, gain [arg2] block",
+        description = "Gain [arg1] Strength",
         comboEffect = {
-            [2] = {arg1 = 8, arg2 = 8},
-            [3] = {arg1 = 12, arg2 = 12},
-            [4] = {arg1 = 16, arg2 = 16},
-            [5] = {arg1 = 20, arg2 = 20}
+            [2] = {add_strength = {arg1 = 3}},
+            [3] = {add_strength = {arg1 = 4}},
+            [4] = {add_strength = {arg1 = 5}},
+            [5] = {add_strength = {arg1 = 6}}
         }
     },
-    BattleCry = {
-        name = "Battle Cry",
-        type = "special",
-        args = { arg1 = 3, arg2 = 3 },
+    Agility = {
+        name = "Agility",
+        type = "skill",
+        args = { arg1 = 2 },
         effect_list = {
-            {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
-            {effect_type ="block", effect_target = "self", effect_args = {"arg2"} },
+            {
+                effect_type = "add_dexterity", 
+                effect_target = "self", 
+                effect_args = {"arg1"}
+            },
         },
-        description = "Deal [arg1] damage, gain [arg2] block",
+        description = "Gain [arg1] Dexterity",
         comboEffect = {
-            [2] = {arg1 = 6, arg2 = 6},
-            [3] = {arg1 = 9, arg2 = 9},
-            [4] = {arg1 = 12, arg2 = 12},
-            [5] = {arg1 = 15, arg2 = 15}
+            [2] = {add_dexterity = {arg1 = 3}},
+            [3] = {add_dexterity = {arg1 = 4}},
+            [4] = {add_dexterity = {arg1 = 5}},
+            [5] = {add_dexterity = {arg1 = 6}}
+        }
+    },
+    Weaken = {
+        name = "Weaken",
+        type = "skill",
+        args = { arg1 = 2 },
+        effect_list = {
+            {
+                effect_type = "add_strength", 
+                effect_target = "enemy", 
+                effect_args = {"-arg1"}
+            },
+        },
+        description = "Reduce enemy's Strength by [arg1]",
+        comboEffect = {
+            [2] = {add_strength = {arg1 = 3}},
+            [3] = {add_strength = {arg1 = 4}},
+            [4] = {add_strength = {arg1 = 5}},
+            [5] = {add_strength = {arg1 = 6}}
+        }
+    },
+    Expose = {
+        name = "Expose",
+        type = "skill",
+        args = { arg1 = 50 },
+        effect_list = {
+            {
+                effect_type = "add_buff", 
+                effect_target = "enemy", 
+                effect_args = {
+                    {
+                        buff_type = "negative",
+                        buff_id = "vulnerable",
+                        args_override = { arg1 = 50 }
+                    }
+                }
+            },
+        },
+        description = "Enemy takes [arg1]% more damage for 2 turns",
+        comboEffect = {
+            [2] = {arg1 = 75},
+            [3] = {arg1 = 100},
+            [4] = {arg1 = 125},
+            [5] = {arg1 = 150}
+        }
+    },
+    Poison = {
+        name = "Poison",
+        type = "skill",
+        args = { arg1 = 3 },
+        effect_list = {
+            {
+                effect_type = "add_buff", 
+                effect_target = "enemy", 
+                effect_args = {
+                    {
+                        buff_type = "negative",
+                        buff_id = "poison",
+                        args_override = { arg1 = 3 }
+                    }
+                }
+            },
+        },
+        description = "Apply Poison that deals [arg1] damage at the end of each turn for 3 turns",
+        comboEffect = {
+            [2] = {arg1 = 5},
+            [3] = {arg1 = 7},
+            [4] = {arg1 = 9},
+            [5] = {arg1 = 12}
         }
     }
 }

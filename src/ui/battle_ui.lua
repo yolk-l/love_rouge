@@ -34,9 +34,31 @@ function battle_ui.drawMonster(monster)
         love.graphics.print("Block: " .. monster:getBlock(), 260, 140)
     end
     
+    -- 显示怪物力量和戒备
+    local yPos = 140
+    if monster:getBlock() > 0 then
+        yPos = 160
+    end
+    
+    if monster:getStrength() > 0 then
+        love.graphics.setColor(0.8, 0.2, 0.2) -- 红色表示力量
+        love.graphics.print("Strength: " .. monster:getStrength(), 260, yPos)
+        yPos = yPos + 20
+    end
+    
+    if monster:getDexterity() > 0 then
+        love.graphics.setColor(0.2, 0.6, 0.8) -- 蓝色表示戒备
+        love.graphics.print("Dexterity: " .. monster:getDexterity(), 260, yPos)
+        yPos = yPos + 20
+    end
+    
     -- 显示怪物当前意图
     love.graphics.setColor(1, 0.5, 0)
-    love.graphics.print("Intent: " .. monster:getIntentDescription(), 260, 160)
+    love.graphics.print("Intent: " .. monster:getIntentDescription(), 260, yPos)
+    yPos = yPos + 20
+    
+    -- 显示怪物buff
+    battle_ui.drawBuffs(monster, 260, yPos)
 end
 
 -- 绘制玩家状态
@@ -56,10 +78,67 @@ function battle_ui.drawPlayerHealth(player)
     -- Draw health text
     love.graphics.setColor(1, 1, 1)
     love.graphics.print(string.format("HP: %d/%d", player:getHealth(), player:getMaxHealth()), 50, 280, 0, 1.2)
+    
     -- Draw block value
+    local yPos = 320
     if player:getBlock() > 0 then
         love.graphics.setColor(0, 0.8, 1)
-        love.graphics.print(string.format("Block: %d", player:getBlock()), 50, 320, 0, 1.2)
+        love.graphics.print(string.format("Block: %d", player:getBlock()), 50, yPos, 0, 1.2)
+        yPos = yPos + 20
+    end
+    
+    -- Draw strength and dexterity
+    if player:getStrength() > 0 then
+        love.graphics.setColor(0.8, 0.2, 0.2) -- 红色表示力量
+        love.graphics.print(string.format("Strength: %d", player:getStrength()), 50, yPos, 0, 1.2)
+        yPos = yPos + 20
+    end
+    
+    if player:getDexterity() > 0 then
+        love.graphics.setColor(0.2, 0.6, 0.8) -- 蓝色表示戒备
+        love.graphics.print(string.format("Dexterity: %d", player:getDexterity()), 50, yPos, 0, 1.2)
+        yPos = yPos + 20
+    end
+    
+    -- Draw player buffs
+    battle_ui.drawBuffs(player, 50, yPos)
+end
+
+-- 绘制角色的buff
+function battle_ui.drawBuffs(character, x, y)
+    local buffs = character:getActiveBuffs()
+    if #buffs == 0 then return end
+    
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.print("Buffs:", x, y)
+    
+    local buffSpacing = 20
+    local buffY = y + 20
+    
+    for i, buff in ipairs(buffs) do
+        -- 选择buff颜色
+        if buff.buff_type == "positive" then
+            love.graphics.setColor(0, 0.8, 0.2) -- 绿色表示增益
+        else
+            love.graphics.setColor(0.8, 0.2, 0.2) -- 红色表示减益
+        end
+        
+        -- 显示buff名称和持续时间
+        local buffText = buff.name
+        
+        -- 如果buff可叠加且层数大于1，显示层数
+        if buff.stackable and buff.stacks and buff.stacks > 1 then
+            buffText = buffText .. " x" .. buff.stacks
+        end
+        
+        -- 显示持续时间（如果不是永久buff）
+        if buff.duration and buff.duration > 0 then
+            buffText = buffText .. " (" .. buff.duration .. ")"
+        elseif buff.duration and buff.duration == -1 then
+            buffText = buffText .. " (∞)"
+        end
+        
+        love.graphics.print(buffText, x, buffY + (i-1) * buffSpacing, 0, 0.8)
     end
 end
 

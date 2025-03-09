@@ -204,6 +204,68 @@ local intents = {
                 check_condition = "enemy_damaged" -- 只有敌人(玩家)受到伤害时才触发
             },
             priority = 2
+        },
+        
+        -- 添加buff的意图
+        apply_strength = {
+            name = "Empower",
+            description = "Gain [arg1] Strength",
+            type = "buff",
+            args = { arg1 = 2 },
+            effect_list = {
+                {
+                    effect_type = "add_strength", 
+                    effect_target = "self", 
+                    effect_args = {"arg1"}
+                }
+            },
+            trigger = {
+                event = "character_damaged",
+                required_count = 10,
+                one_time = true,
+                check_condition = "self_damaged" -- 只有怪物自身受到伤害时才触发
+            },
+            priority = 2
+        },
+        
+        apply_dexterity = {
+            name = "Defensive Stance",
+            description = "Gain [arg1] Dexterity",
+            type = "buff",
+            args = { arg1 = 2 },
+            effect_list = {
+                {
+                    effect_type = "add_dexterity", 
+                    effect_target = "self", 
+                    effect_args = {"arg1"}
+                }
+            },
+            trigger = {
+                event = "cards_finished",
+                required_count = 1,
+                one_time = true
+            },
+            priority = 2
+        },
+        
+        weaken_enemy = {
+            name = "Weaken",
+            description = "Reduce enemy's Strength by [arg1]",
+            type = "debuff",
+            args = { arg1 = 2 },
+            effect_list = {
+                {
+                    effect_type = "add_strength", 
+                    effect_target = "enemy", 
+                    effect_args = {"-arg1"}
+                }
+            },
+            trigger = {
+                event = "cards_finished",
+                required_count = 1,
+                one_time = true
+            },
+            priority = 2
         }
     }
 }
