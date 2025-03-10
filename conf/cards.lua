@@ -7,7 +7,7 @@ local cards = {
         effect_list = {
             {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
-        description = "Deal [arg1] damage",
+        description = "Deal [arg1] 伤害",
         comboEffect = {
             [2] = {damage = {arg1 = 12}},
             [3] = {damage = {arg1 = 18}},

@@ -60,12 +60,14 @@ end
 -- 初始化玩家卡组
 function mt:initDeck()
     -- 添加初始卡牌
+    print("初始化玩家卡组...")
     global.cardMgr:addCardToDeck("Strike")
     global.cardMgr:addCardToDeck("Strike")
     global.cardMgr:addCardToDeck("Strike")
     global.cardMgr:addCardToDeck("Defend")
     global.cardMgr:addCardToDeck("Defend")
     global.cardMgr:addCardToDeck("Defend")
+    print("玩家卡组初始化完成，卡组大小: " .. #global.cardMgr:getDeck())
 end
 
 local Player = {}

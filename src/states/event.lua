@@ -97,8 +97,13 @@ local EVENT_TYPES = {
                 effect = function()
                     local card = global.cardMgr:getRandomCard("attack")
                     if card then
-                        global.cardMgr:addCardToDeck(card.name)
-                        return "You learned a new attack card: " .. card.name
+                        print("尝试从Card Master学习攻击卡牌: " .. card.name)
+                        local success = global.cardMgr:addCardToDeck(card.name)
+                        if success then
+                            return "You learned a new attack card: " .. card.name
+                        else
+                            return "The card master tried to teach you " .. card.name .. ", but you couldn't learn it."
+                        end
                     else
                         return "The card master seems to have forgotten how to teach attack cards."
                     end
@@ -109,8 +114,13 @@ local EVENT_TYPES = {
                 effect = function()
                     local card = global.cardMgr:getRandomCard("defense")
                     if card then
-                        global.cardMgr:addCardToDeck(card.name)
-                        return "You learned a new defense card: " .. card.name
+                        print("尝试从Card Master学习防御卡牌: " .. card.name)
+                        local success = global.cardMgr:addCardToDeck(card.name)
+                        if success then
+                            return "You learned a new defense card: " .. card.name
+                        else
+                            return "The card master tried to teach you " .. card.name .. ", but you couldn't learn it."
+                        end
                     else
                         return "The card master seems to have forgotten how to teach defense cards."
                     end
@@ -121,8 +131,13 @@ local EVENT_TYPES = {
                 effect = function()
                     local card = global.cardMgr:getRandomCard("skill")
                     if card then
-                        global.cardMgr:addCardToDeck(card.name)
-                        return "You learned a new skill card: " .. card.name
+                        print("尝试从Card Master学习技能卡牌: " .. card.name)
+                        local success = global.cardMgr:addCardToDeck(card.name)
+                        if success then
+                            return "You learned a new skill card: " .. card.name
+                        else
+                            return "The card master tried to teach you " .. card.name .. ", but you couldn't learn it."
+                        end
                     else
                         return "The card master seems to have forgotten how to teach skill cards."
                     end
@@ -137,13 +152,17 @@ function mt:load(params)
     self.currentEvent = EVENT_TYPES[math.random(1, #EVENT_TYPES)]
     self.resultText = nil
     self.optionButtons = {}
+    self.optionSelected = false  -- 添加标记，表示是否已经选择了一个选项
     
     -- 创建选项按钮
     local buttonY = 300
     for i, option in ipairs(self.currentEvent.options) do
         local btn = button.new(option.text, 400, buttonY, 200, 50, function()
-            self.resultText = option.effect()
-            self:disableButtons()
+            if not self.optionSelected then  -- 只有在没有选择过选项时才执行
+                self.optionSelected = true   -- 标记已选择
+                self.resultText = option.effect()
+                self:disableButtons()
+            end
         end)
         table.insert(self.optionButtons, btn)
         buttonY = buttonY + 60
@@ -156,6 +175,7 @@ function mt:load(params)
     
     -- 初始状态下，如果有结果文本，禁用选项按钮
     if self.resultText then
+        self.optionSelected = true
         self:disableButtons()
     end
 end
@@ -168,8 +188,10 @@ end
 
 function mt:update(dt)
     -- 更新按钮状态
-    for _, btn in ipairs(self.optionButtons) do
-        btn:update(dt)
+    if not self.optionSelected then  -- 只有在没有选择过选项时才更新选项按钮
+        for _, btn in ipairs(self.optionButtons) do
+            btn:update(dt)
+        end
     end
     self.backButton:update(dt)
 end
@@ -203,8 +225,10 @@ end
 
 function mt:mousepressed(x, y, button)
     if button == 1 then -- 左键点击
-        for _, btn in ipairs(self.optionButtons) do
-            btn:mousepressed(x, y)
+        if not self.optionSelected then  -- 只有在没有选择过选项时才处理选项按钮点击
+            for _, btn in ipairs(self.optionButtons) do
+                btn:mousepressed(x, y)
+            end
         end
         self.backButton:mousepressed(x, y)
     end

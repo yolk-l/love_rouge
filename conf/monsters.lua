@@ -1,5 +1,3 @@
-local intents = require "conf.intents"
-
 local monsters = {
     -- Normal monsters
     normal = {

@@ -65,7 +65,10 @@ function mt:load(params)
     local monsterData = monsterPool[math.random(1, #monsterPool)]
     local currentMonster = monster.new(monsterData, self.battleType)
     global.charaterMgr:addCharacter(global.camp.monster, currentMonster)
+    
+    -- 只重置战斗中的卡牌状态，不重置玩家的卡组
     global.cardMgr:reset()
+    
     -- 初始化按钮
     self.generateCardButton = button.new("Generate Cards", 300, 550, 150, 50, self.onGenerateCardClick, self)
     self.executeCardButton = button.new("Execute Cards", 500, 550, 150, 50, self.onExecuteCardClick, self)

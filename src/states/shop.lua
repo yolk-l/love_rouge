@@ -162,14 +162,16 @@ function mt:drawCardDetails(card, x, y)
     
     -- 替换描述中的参数
     local description = card.description
-    for argName, argValue in pairs(card.args) do
-        description = description:gsub("%[" .. argName .. "%]", tostring(argValue))
+    if card.args then
+        for argName, argValue in pairs(card.args) do
+            description = description:gsub("%[" .. argName .. "%]", tostring(argValue))
+        end
     end
     
     love.graphics.printf(description, x + 10, y + 70, 180, "left")
     
     -- 显示combo效果
-    if card.comboEffect then
+    if card.comboEffect and type(card.comboEffect) == "table" then
         love.graphics.print("Combo Effects:", x + 10, y + 120)
         local yOffset = 140
         for count, effect in pairs(card.comboEffect) do
@@ -179,10 +181,16 @@ function mt:drawCardDetails(card, x, y)
             if type(effect) == "table" then
                 for effectType, args in pairs(effect) do
                     comboText = comboText .. effectType .. " "
-                    for argName, argValue in pairs(args) do
-                        comboText = comboText .. argValue .. " "
+                    if type(args) == "table" then
+                        for argName, argValue in pairs(args) do
+                            comboText = comboText .. argValue .. " "
+                        end
+                    else
+                        comboText = comboText .. tostring(args) .. " "
                     end
                 end
+            else
+                comboText = comboText .. tostring(effect)
             end
             
             love.graphics.print(comboText, x + 20, y + yOffset)
@@ -207,11 +215,13 @@ function mt:mousepressed(x, y, button)
                 if x >= itemX and x <= itemX + 100 and y >= itemY and y <= itemY + 80 then
                     self.selectedCard = item.card
                     self.selectedDeckCard = nil
+                    print("选中商店卡牌: " .. item.card.name)
                     return
                 end
                 
                 -- 检查是否点击了购买按钮
                 if x >= itemX + 120 and x <= itemX + 200 and y >= itemY + 20 and y <= itemY + 60 then
+                    print("点击购买按钮，卡牌: " .. item.card.name)
                     self:buyItem(item)
                     return
                 end
@@ -232,6 +242,7 @@ function mt:mousepressed(x, y, button)
                 if x >= cardX and x <= cardX + 100 and y >= cardY and y <= cardY + 80 then
                     self.selectedDeckCard = {index = i, card = card}
                     self.selectedCard = nil
+                    print("选中卡组卡牌: " .. card.name .. "，索引: " .. i)
                     return
                 end
                 
@@ -239,6 +250,7 @@ function mt:mousepressed(x, y, button)
                 if global.player.gold >= REMOVE_CARD_PRICE and
                    x >= cardX + 10 and x <= cardX + 90 and 
                    y >= cardY + 50 and y <= cardY + 70 then
+                    print("点击移除按钮，卡牌: " .. card.name .. "，索引: " .. i)
                     self:removeCard(i)
                     return
                 end
@@ -257,7 +269,12 @@ function mt:buyItem(item)
     if global.player.gold >= item.price then
         if item.type == "card" then
             -- 添加卡牌到玩家卡组
-            if global.cardMgr:addCardToDeck(item.card.name) then
+            print("尝试购买卡牌: " .. item.card.name)
+            
+            -- 使用卡牌的name属性而不是键名
+            local success = global.cardMgr:addCardToDeck(item.card.name)
+            
+            if success then
                 -- 扣除金币
                 global.player:spendGold(item.price)
                 -- 从商店移除该物品
@@ -269,25 +286,44 @@ function mt:buyItem(item)
                 end
                 -- 重置选中状态
                 self.selectedCard = nil
+                print("成功购买卡牌: " .. item.card.name)
+                
+                -- 如果商店没有卡牌了，可以选择重新生成一些
+                if #self.shopItems == 0 then
+                    print("商店已售空，返回地图")
+                end
+            else
+                print("添加卡牌失败: " .. item.card.name)
             end
         end
     else
-        print("Not enough gold!")
+        print("金币不足! 需要 " .. item.price .. " 金币")
     end
 end
 
 function mt:removeCard(index)
     if global.player.gold >= REMOVE_CARD_PRICE then
         -- 从卡组中移除卡牌
+        local deck = global.cardMgr:getDeck()
+        if index <= 0 or index > #deck then
+            print("错误: 无效的卡牌索引: " .. index .. "，当前卡组大小: " .. #deck)
+            return
+        end
+        
+        local cardName = deck[index].name
         local removedCard = global.cardMgr:removeCardFromDeck(index)
+        
         if removedCard then
             -- 扣除金币
             global.player:spendGold(REMOVE_CARD_PRICE)
             -- 重置选中状态
             self.selectedDeckCard = nil
+            print("成功移除卡牌: " .. cardName)
+        else
+            print("移除卡牌失败，索引: " .. index .. "，当前卡组大小: " .. #global.cardMgr:getDeck())
         end
     else
-        print("Not enough gold!")
+        print("金币不足! 需要 " .. REMOVE_CARD_PRICE .. " 金币")
     end
 end
 
