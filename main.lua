@@ -17,7 +17,7 @@ table.clone = function(t)
 end
 
 function love.load()
-    local font = love.graphics.newFont("assets/fonts/simsun.ttc",20)
+    local font = love.graphics.newFont("assets/fonts/simsun.ttc",16)
     love.graphics.setFont(font)
     global.stateMgr = stateMgr.new()
     global.cardMgr = cardMgr.new()
