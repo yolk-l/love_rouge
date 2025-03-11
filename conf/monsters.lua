@@ -28,7 +28,7 @@ local monsters = {
             dexterity = 2,
             intent_refs = {
                 "basic_attack",
-                "counter_attack",
+                "apply_strength",
             }
         },
         {
@@ -40,7 +40,7 @@ local monsters = {
             intent_refs = {
                 "basic_attack",
                 "apply_strength",
-                "apply_weakness",
+                "weaken_enemy",
             }
         }
     },
@@ -66,7 +66,7 @@ local monsters = {
             intent_refs = {
                 "strong_attack",
                 "strong_shield",
-                "rage",
+                "apply_dexterity",
             }
         },
         {
@@ -75,7 +75,7 @@ local monsters = {
             maxHealth = 65,
             intent_refs = {
                 "strong_attack",
-                "counter_attack",
+                "apply_strength",
                 "strong_shield",
             }
         },
@@ -100,7 +100,7 @@ local monsters = {
                 "very_strong_attack",
                 "boss_split",
                 "strong_shield",
-                "boss_rage",
+                "apply_dexterity",
             }
         },
         {

@@ -113,10 +113,10 @@ local cards = {
         },
         description = "降低敌人 [arg1] 点力量",
         comboEffect = {
-            [2] = {add_strength = {arg1 = 3}},
-            [3] = {add_strength = {arg1 = 4}},
-            [4] = {add_strength = {arg1 = 5}},
-            [5] = {add_strength = {arg1 = 6}}
+            [2] = {add_strength = {arg1 = -3}},
+            [3] = {add_strength = {arg1 = -4}},
+            [4] = {add_strength = {arg1 = -5}},
+            [5] = {add_strength = {arg1 = -6}}
         }
     },
     Expose = {

@@ -5,15 +5,14 @@ local intents = {
         name = "Attack",
         description = "Deal [arg1] damage after taking [arg2] damage",
         type = "attack",
-        args = { arg1 = 5, arg2 = 3 },
+        args = { arg1 = 15, arg2 = 1 },
         effect_list = {
             {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
         trigger = {
-            event = "character_damaged",
+            event = "cards_generated",
             required_count = "arg2",
             one_time = true,
-            check_condition = "self_damaged" -- 只有怪物自身受到伤害时才触发
         },
         priority = 1
     },
@@ -21,15 +20,14 @@ local intents = {
         name = "Strong Attack",
         description = "Deal [arg1] damage after taking [arg2] damage",
         type = "attack",
-        args = { arg1 = 8, arg2 = 4 },
+        args = { arg1 = 30, arg2 = 1 },
         effect_list = {
             {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
         trigger = {
-            event = "character_damaged",
+            event = "cards_generated",
             required_count = "arg2",
             one_time = true,
-            check_condition = "self_damaged" -- 只有怪物自身受到伤害时才触发
         },
         priority = 1
     },
@@ -37,15 +35,14 @@ local intents = {
         name = "Very Strong Attack",
         description = "Deal [arg1] damage after taking [arg2] damage",
         type = "attack",
-        args = { arg1 = 12, arg2 = 5 },
+        args = { arg1 = 45, arg2 = 1 },
         effect_list = {
             {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
         trigger = {
-            event = "character_damaged",
+            event = "cards_generated",
             required_count = "arg2",
             one_time = true,
-            check_condition = "self_damaged" -- 只有怪物自身受到伤害时才触发
         },
         priority = 1
     },
@@ -60,7 +57,7 @@ local intents = {
             {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
         },
         trigger = {
-            event = "cards_generated",
+            event = "cards_finished",
             required_count = 1,
             one_time = true
         },
@@ -75,7 +72,7 @@ local intents = {
             {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
         },
         trigger = {
-            event = "cards_generated",
+            event = "cards_finished",
             required_count = 1,
             one_time = true
         },
@@ -85,12 +82,12 @@ local intents = {
         name = "Defensive Stance",
         description = "Gain [arg1] block",
         type = "shield",
-        args = { arg1 = 8 },
+        args = { arg1 = 18 },
         effect_list = {
             {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
         },
         trigger = {
-            event = "cards_generated",
+            event = "cards_finished",
             required_count = 1,
             one_time = true
         },
@@ -102,7 +99,7 @@ local intents = {
         name = "Split",
         description = "Heal [arg1] HP after taking [arg2] damage",
         type = "heal",
-        args = { arg1 = 5, arg2 = 15 },
+        args = { arg1 = 5, arg2 = 3 },
         effect_list = {
             {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
         },
@@ -118,7 +115,7 @@ local intents = {
         name = "Elite Split",
         description = "Heal [arg1] HP after taking [arg2] damage",
         type = "heal",
-        args = { arg1 = 10, arg2 = 20 },
+        args = { arg1 = 10, arg2 = 3 },
         effect_list = {
             {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
         },
@@ -134,7 +131,7 @@ local intents = {
         name = "Boss Split",
         description = "Heal [arg1] HP after taking [arg2] damage",
         type = "heal",
-        args = { arg1 = 15, arg2 = 20 },
+        args = { arg1 = 15, arg2 = 3 },
         effect_list = {
             {effect_type ="heal", effect_target = "self", effect_args = {"arg1"} },
         },
@@ -146,59 +143,6 @@ local intents = {
         },
         priority = 2
     },
-
--- 增益类意图
-    rage = {
-        name = "Rage",
-        description = "Increase attack by [arg1] after taking [arg2] damage",
-        type = "buff_attack",
-        args = { arg1 = 5, arg2 = 20 },
-        effect_list = {
-            {effect_type ="buff_attack", effect_target = "self", effect_args = {"arg1"} },
-        },
-        trigger = {
-            event = "character_damaged",
-            required_count = "arg2",
-            one_time = true,
-            check_condition = "self_damaged" -- 只有怪物自身受到伤害时才触发
-        },
-        priority = 3
-    },
-    boss_rage = {
-        name = "Emperor's Rage",
-        description = "Increase attack by [arg1] after taking [arg2] damage",
-        type = "buff_attack",
-        args = { arg1 = 8, arg2 = 20 },
-        effect_list = {
-            {effect_type ="buff_attack", effect_target = "self", effect_args = {"arg1"} },
-        },
-        trigger = {
-            event = "character_damaged",
-            required_count = "arg2",
-            one_time = true,
-            check_condition = "self_damaged" -- 只有怪物自身受到伤害时才触发
-        },
-        priority = 4
-    },
-
-    -- 新增一个在玩家受到伤害时触发的意图示例
-    counter_attack = {
-        name = "Counter Attack",
-        description = "Deal [arg1] damage when player takes damage",
-        type = "attack",
-        args = { arg1 = 3 },
-        effect_list = {
-            {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
-        },
-        trigger = {
-            event = "character_damaged",
-            required_count = 1,
-            one_time = true,
-            check_condition = "enemy_damaged" -- 只有敌人(玩家)受到伤害时才触发
-        },
-        priority = 2
-    },
-
     -- 添加buff的意图
     apply_strength = {
         name = "Empower",
@@ -214,7 +158,7 @@ local intents = {
         },
         trigger = {
             event = "character_damaged",
-            required_count = 10,
+            required_count = 3,
             one_time = true,
             check_condition = "self_damaged" -- 只有怪物自身受到伤害时才触发
         },
