@@ -22,7 +22,7 @@ local cards = {
         effect_list = {
             {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
-        description = "Deal [arg1] damage",
+        description = "造成 [arg1] 伤害",
         comboEffect = {
             [2] = {damage = {arg1 = 16}},
             [3] = {damage = {arg1 = 24}},
@@ -38,7 +38,7 @@ local cards = {
         effect_list = {
             {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
         },
-        description = "Gain [arg1] block",
+        description = "获得 [arg1] 点格挡",
         comboEffect = {
             [2] = {block = {arg1 = 10}},
             [3] = {block = {arg1 = 15}},
@@ -53,7 +53,7 @@ local cards = {
         effect_list = {
             {effect_type ="block", effect_target = "self", effect_args = {"arg1"} },
         },
-        description = "Gain [arg1] block",
+        description = "获得 [arg1] 点格挡",
         comboEffect = {
             [2] = {block = {arg1 = 16}},
             [3] = {block = {arg1 = 24}},
@@ -73,7 +73,7 @@ local cards = {
                 effect_args = {"arg1"}
             },
         },
-        description = "Gain [arg1] Strength",
+        description = "获得 [arg1] 点力量",
         comboEffect = {
             [2] = {add_strength = {arg1 = 3}},
             [3] = {add_strength = {arg1 = 4}},
@@ -92,7 +92,7 @@ local cards = {
                 effect_args = {"arg1"}
             },
         },
-        description = "Gain [arg1] Dexterity",
+        description = "获得 [arg1] 点敏捷",
         comboEffect = {
             [2] = {add_dexterity = {arg1 = 3}},
             [3] = {add_dexterity = {arg1 = 4}},
@@ -111,7 +111,7 @@ local cards = {
                 effect_args = {"-arg1"}
             },
         },
-        description = "Reduce enemy's Strength by [arg1]",
+        description = "降低敌人 [arg1] 点力量",
         comboEffect = {
             [2] = {add_strength = {arg1 = 3}},
             [3] = {add_strength = {arg1 = 4}},
@@ -136,7 +136,7 @@ local cards = {
                 }
             },
         },
-        description = "Enemy takes [arg1]% more damage for 2 turns",
+        description = "敌人在2回合内受到的伤害增加 [arg1]%",
         comboEffect = {
             [2] = {arg1 = 75},
             [3] = {arg1 = 100},
@@ -161,7 +161,7 @@ local cards = {
                 }
             },
         },
-        description = "Apply Poison that deals [arg1] damage at the end of each turn for 3 turns",
+        description = "给予中毒效果，3回合内每回合结束时造成 [arg1] 点伤害",
         comboEffect = {
             [2] = {arg1 = 5},
             [3] = {arg1 = 7},
