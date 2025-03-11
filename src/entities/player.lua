@@ -4,6 +4,7 @@ local targetComp = require "src.entities.component.target_comp"
 local eventMgr = require "src.manager.event_mgr"
 local global = require "src.global"
 local buffMgr = require "src.manager.buff_mgr"
+local idGenerator = require "src.utils.id_generator"
 
 local mt = {}
 mt.__index = mt
@@ -11,9 +12,10 @@ mt.__index = mt
 function mt:incrementCardsGenerated()
     self.cardsGenerated = self.cardsGenerated + 1
     -- 触发卡牌生成计数事件
-    eventMgr.emit("player_cards_generated_count", {
+    eventMgr.emit(global.events.PLAYER_CARDS_GENERATED_COUNT, {
         value = self.cardsGenerated,
-        source = self
+        sourceId = self.id,
+        sourceType = "player"
     })
     return self.cardsGenerated
 end
@@ -34,10 +36,11 @@ end
 function mt:addGold(amount)
     self.gold = self.gold + amount
     -- 触发金币变化事件
-    eventMgr.emit("player_gold_changed", {
+    eventMgr.emit(global.events.PLAYER_GOLD_CHANGED, {
         value = amount,
         total = self.gold,
-        source = self
+        sourceId = self.id,
+        sourceType = "player"
     })
     return self.gold
 end
@@ -47,10 +50,11 @@ function mt:spendGold(amount)
     if self.gold >= amount then
         self.gold = self.gold - amount
         -- 触发金币变化事件
-        eventMgr.emit("player_gold_changed", {
+        eventMgr.emit(global.events.PLAYER_GOLD_CHANGED, {
             value = -amount,
             total = self.gold,
-            source = self
+            sourceId = self.id,
+            sourceType = "player"
         })
         return true
     end
@@ -70,10 +74,32 @@ function mt:initDeck()
     print("玩家卡组初始化完成，卡组大小: " .. #global.cardMgr:getDeck())
 end
 
+-- 获取玩家ID
+function mt:getId()
+    return self.id
+end
+
+-- 获取玩家数据（用于事件传递）
+function mt:getData()
+    return {
+        id = self.id,
+        type = "player",
+        name = self.name,
+        health = self:getHealth(),
+        maxHealth = self:getMaxHealth(),
+        block = self:getBlock(),
+        strength = self:getStrength(),
+        dexterity = self:getDexterity(),
+        gold = self.gold,
+        camp = self.camp
+    }
+end
+
 local Player = {}
 
 function Player.new()
     local player = setmetatable({
+        id = idGenerator.generateId("player"),
         name = "Player",
         health = 100,
         maxHealth = 100,

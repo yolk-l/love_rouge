@@ -3,6 +3,7 @@ local eventMgr = require "src.manager.event_mgr"
 local effectMgr = require "src.manager.effect_mgr"
 local base_util = require "src.utils.base_util"
 local buffs = require "conf.buffs"
+local idGenerator = require "src.utils.id_generator"
 
 local mt = {}
 mt.__index = mt
@@ -21,11 +22,11 @@ end
 function mt:registerGlobalListeners()
     -- 注册事件监听器，用于处理触发式buff
     local events = {
-        "character_damaged",
-        "cards_finished",
-        "before_damage_dealt",
-        "before_damage_taken",
-        "before_block_gained"
+        global.events.CHARACTER_DAMAGED,
+        global.events.CARDS_FINISHED,
+        global.events.BEFORE_DAMAGE_DEALT,
+        global.events.BEFORE_DAMAGE_TAKEN,
+        global.events.BEFORE_BLOCK_GAINED
     }
     
     for _, event in ipairs(events) do
@@ -73,12 +74,14 @@ function mt:addBuff(buffRef, source)
     local buff = self:resolveBuffRef(buffRef)
     if not buff then
         print("Warning: Failed to resolve buff reference")
-        return false
+        return nil
     end
     
     -- 添加新buff
     local newBuff = table.clone(buff)
-    newBuff.source = source
+    newBuff.id = idGenerator.generateId("buff")
+    newBuff.sourceId = source:getId()
+    newBuff.sourceType = source:getCamp() == global.camp.player and "player" or "monster"
     newBuff.trigger_count = 0
     
     -- 添加到激活buff列表
@@ -87,13 +90,17 @@ function mt:addBuff(buffRef, source)
     print(string.format("%s gained %s buff", self.owner.name, buff.name))
     
     -- 触发buff添加事件
-    eventMgr.emit("buff_added", {
-        target = self.owner,
-        source = source,
-        buff = newBuff
+    eventMgr.emit(global.events.BUFF_ADDED, {
+        targetId = self.owner:getId(),
+        targetType = self.owner:getCamp() == global.camp.player and "player" or "monster",
+        sourceId = source:getId(),
+        sourceType = source:getCamp() == global.camp.player and "player" or "monster",
+        buffId = newBuff.id,
+        buffType = newBuff.buff_type,
+        buffName = newBuff.name
     })
     
-    return true
+    return newBuff
 end
 
 -- 检查buff触发器
@@ -121,9 +128,12 @@ function mt:checkBuffTriggers(event, eventData)
                         print(string.format("%s's %s buff removed after triggering", self.owner.name, buff.name))
                         
                         -- 触发buff移除事件
-                        eventMgr.emit("buff_removed", {
-                            target = self.owner,
-                            buff = buff
+                        eventMgr.emit(global.events.BUFF_REMOVED, {
+                            targetId = self.owner:getId(),
+                            targetType = self.owner:getCamp() == global.camp.player and "player" or "monster",
+                            buffId = buff.id,
+                            buffType = buff.buff_type,
+                            buffName = buff.name
                         })
                     end
                 end
@@ -149,30 +159,30 @@ function mt:checkBuffCondition(buff, eventData)
     
     -- 检查是否是自身受到伤害的条件
     if condition == "self_damaged" then
-        -- 检查事件数据中是否有target字段
-        if not eventData.target then
+        -- 检查事件数据中是否有targetId字段
+        if not eventData.targetId then
             return false
         end
         -- 检查受到伤害的目标是否是自己
-        return eventData.target == self.owner
+        return eventData.targetId == self.owner:getId()
     
     -- 检查是否是自身攻击的条件
     elseif condition == "self_attacking" then
-        -- 检查事件数据中是否有source字段
-        if not eventData.source then
+        -- 检查事件数据中是否有sourceId字段
+        if not eventData.sourceId then
             return false
         end
         -- 检查攻击来源是否是自己
-        return eventData.source == self.owner
+        return eventData.sourceId == self.owner:getId()
     
     -- 检查是否是自身获得格挡的条件
     elseif condition == "self_blocking" then
-        -- 检查事件数据中是否有target字段
-        if not eventData.target then
+        -- 检查事件数据中是否有targetId字段
+        if not eventData.targetId then
             return false
         end
         -- 检查获得格挡的目标是否是自己
-        return eventData.target == self.owner
+        return eventData.targetId == self.owner:getId()
     
     -- 总是触发的条件
     elseif condition == "always" then
@@ -218,8 +228,18 @@ function mt:executeBuffEffects(buff, eventData)
             table.insert(effectArgs, argValue)
         end
         
+        -- 获取buff的源对象
+        local source = nil
+        if buff.sourceId then
+            source = global.charaterMgr:getCharacterById(buff.sourceId)
+        end
+        
+        if not source then
+            source = self.owner -- 如果找不到源对象，使用自身
+        end
+        
         -- 执行效果
-        effectMgr.excuteEffect(buff.source or self.owner, effectType, effect.effect_target, effectArgs)
+        effectMgr.excuteEffect(source, effectType, effect.effect_target, effectArgs)
         
         ::continue::
     end
@@ -236,9 +256,12 @@ function mt:removeAllBuffs()
         local buff = self.activeBuffs[i]
         
         -- 触发buff移除事件
-        eventMgr.emit("buff_removed", {
-            target = self.owner,
-            buff = buff
+        eventMgr.emit(global.events.BUFF_REMOVED, {
+            targetId = self.owner:getId(),
+            targetType = self.owner:getCamp() == global.camp.player and "player" or "monster",
+            buffId = buff.id,
+            buffType = buff.buff_type,
+            buffName = buff.name
         })
     end
     

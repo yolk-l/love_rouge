@@ -25,9 +25,10 @@ function mt:onGenerateCardClick()
     -- 生成卡牌
     global.cardMgr:generateCards()
     -- 触发卡牌生成事件
-    eventMgr.emit("cards_generated", {
+    eventMgr.emit(global.events.CARDS_GENERATED, {
         value = 1,
-        source = global.player
+        sourceId = global.player:getId(),
+        sourceType = "player"
     })
 end
 
@@ -36,8 +37,9 @@ function mt:onExecuteCardClick()
     if global.cardMgr:startReleasingCards() then
         self:disableButtons()
         -- 触发卡牌执行事件
-        eventMgr.emit("cards_executed", {
-            source = global.player
+        eventMgr.emit(global.events.CARDS_EXECUTED, {
+            sourceId = global.player:getId(),
+            sourceType = "player"
         })
     else
         print("No cards to execute! Generate cards first.")
@@ -75,9 +77,10 @@ function mt:load(params)
     self:enableButtons()
     
     -- 触发战斗开始事件
-    eventMgr.emit("battle_start", {
+    eventMgr.emit(global.events.BATTLE_START, {
         battleType = self.battleType,
-        source = global.player
+        sourceId = global.player:getId(),
+        sourceType = "player"
     })
 end
 
@@ -89,8 +92,8 @@ function mt:update(dt)
     end
 
     -- 更新卡牌释放逻辑
-    local cardsFinished = global.cardMgr:update(dt, function(cardData)
-        global.cardMgr:executeCard(cardData)
+    local cardsFinished = global.cardMgr:update(dt, function(cardGroup)
+        global.cardMgr:executeCardGroup(cardGroup)
     end)
 
     -- 如果卡牌释放完成，重新启用按钮
@@ -100,8 +103,9 @@ function mt:update(dt)
         global.cardMgr:reset()
         
         -- 触发卡牌释放完成事件
-        eventMgr.emit("cards_finished", {
-            source = global.player
+        eventMgr.emit(global.events.CARDS_FINISHED, {
+            sourceId = global.player:getId(),
+            sourceType = "player"
         })
     end
 
@@ -113,9 +117,10 @@ function mt:update(dt)
             if battleResult == global.battle_result.player_win then
                 print("Player won!")
                 -- 触发战斗胜利事件
-                eventMgr.emit("battle_victory", {
+                eventMgr.emit(global.events.BATTLE_VICTORY, {
                     battleType = self.battleType,
-                    source = global.player
+                    sourceId = global.player:getId(),
+                    sourceType = "player"
                 })
                 global.stateMgr:changeState("map", {
                     completeBattleNode = true
@@ -123,9 +128,10 @@ function mt:update(dt)
             elseif battleResult == global.battle_result.monster_win then
                 print("Player lost!")
                 -- 触发战斗失败事件
-                eventMgr.emit("battle_defeat", {
+                eventMgr.emit(global.events.BATTLE_DEFEAT, {
                     battleType = self.battleType,
-                    source = global.player
+                    sourceId = global.player:getId(),
+                    sourceType = "player"
                 })
                 global.stateMgr:changeState("game_over")
             end
@@ -149,7 +155,12 @@ function mt:draw()
     -- 绘制卡牌
     local cardState = global.cardMgr:getState()
     battle_ui.drawCards(cardState.playerCards)
-    battle_ui.drawFlyingCards(cardState.flyingCards)
+    
+    -- 绘制高亮卡牌组
+    battle_ui.drawHighlightedGroups(cardState.highlightedGroups)
+    
+    -- 绘制飘字效果
+    battle_ui.drawFloatingTexts(cardState.floatingTexts)
     
     -- 绘制按钮
     battle_ui.drawButtons(self.generateCardButton, self.executeCardButton, cardState.isReleasingCards)

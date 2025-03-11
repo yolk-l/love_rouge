@@ -9,14 +9,35 @@ end
 
 function mt:addCharacter(camp, character)
     table.insert(self.characters[camp], character)
+    -- 添加到ID映射表
+    self.characterIdMap[character:getId()] = character
 end
 
 function mt:removeCharacter(camp, character)
     if not character then
+        -- 移除所有角色并清除ID映射
+        for _, char in ipairs(self.characters[camp]) do
+            self.characterIdMap[char:getId()] = nil
+        end
         self.characters[camp] = {}
         return
     end
-    table.remove(self.characters[camp], character)
+    
+    -- 从ID映射表中移除
+    self.characterIdMap[character:getId()] = nil
+    
+    -- 从阵营列表中移除
+    for i, char in ipairs(self.characters[camp]) do
+        if char == character then
+            table.remove(self.characters[camp], i)
+            break
+        end
+    end
+end
+
+-- 通过ID获取角色
+function mt:getCharacterById(id)
+    return self.characterIdMap[id]
 end
 
 function mt:getEnemiesByCamp(camp)
@@ -53,6 +74,7 @@ function charaterMgr.new()
     self.characters = {}
     self.characters[global.camp.player] = {}
     self.characters[global.camp.monster] = {}
+    self.characterIdMap = {} -- ID到角色的映射
     return self
 end
 

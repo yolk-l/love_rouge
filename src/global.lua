@@ -34,6 +34,7 @@ global.events = {
     PLAYER_CARDS_GENERATED_COUNT = "player_cards_generated_count",
     CARD_ADDED_TO_DECK = "card_added_to_deck",
     CARD_REMOVED_FROM_DECK = "card_removed_from_deck",
+    CARD_EFFECT_APPLIED = "card_effect_applied",
     
     -- 角色相关事件
     CHARACTER_DAMAGED = "character_damaged",
@@ -55,8 +56,23 @@ global.events = {
     
     -- 效果修改事件
     BEFORE_DAMAGE_DEALT = "before_damage_dealt",
+    AFTER_DAMAGE_DEALT = "after_damage_dealt",
     BEFORE_DAMAGE_TAKEN = "before_damage_taken",
-    BEFORE_BLOCK_GAINED = "before_block_gained"
+    AFTER_DAMAGE_TAKEN = "after_damage_taken",
+    BEFORE_BLOCK_GAINED = "before_block_gained",
+    AFTER_BLOCK_GAINED = "after_block_gained",
+    BEFORE_HEAL = "before_heal",
+    AFTER_HEAL = "after_heal",
+    BEFORE_BUFF_ADDED = "before_buff_added",
+    AFTER_BUFF_ADDED = "after_buff_added",
+    BEFORE_STRENGTH_CHANGED = "before_strength_changed",
+    AFTER_STRENGTH_CHANGED = "after_strength_changed",
+    BEFORE_DEXTERITY_CHANGED = "before_dexterity_changed",
+    AFTER_DEXTERITY_CHANGED = "after_dexterity_changed",
+    
+    -- 意图相关事件
+    INTENT_BEFORE_EXECUTE = "intent_before_execute",
+    INTENT_AFTER_EXECUTE = "intent_after_execute",
 }
 
 return global

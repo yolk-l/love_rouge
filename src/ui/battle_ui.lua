@@ -238,43 +238,46 @@ function battle_ui.drawCards(cards)
     end
 end
 
--- 绘制飞行中的卡牌
-function battle_ui.drawFlyingCards(flyingCards)
+-- 绘制高亮卡牌组
+function battle_ui.drawHighlightedGroups(highlightedGroups)
     local cardWidth = 100
     local cardHeight = 140
+    local cardSpacing = 15
+    local startX = 30
+    local startY = 400
 
-    for _, flyingCard in ipairs(flyingCards) do
-        local x = flyingCard.startX + (flyingCard.targetX - flyingCard.startX) * flyingCard.progress
-        local y = flyingCard.startY + (flyingCard.targetY - flyingCard.startY) * flyingCard.progress
+    for _, highlight in ipairs(highlightedGroups) do
+        local group = highlight.group
+        local alpha = 1 - (highlight.timer / highlight.duration)
         
-        -- 获取卡牌类型颜色
-        local typeColor = getCardTypeColor(flyingCard.card.type)
-
-        -- Draw card background
-        love.graphics.setColor(0.2, 0.2, 0.2)
-        love.graphics.rectangle("fill", x, y, cardWidth, cardHeight)
-
-        -- Draw card border with type color
-        love.graphics.setColor(typeColor)
-        love.graphics.setLineWidth(2)
-        love.graphics.rectangle("line", x, y, cardWidth, cardHeight)
+        -- 计算高亮框的位置和大小
+        local x = startX + (group.startIndex - 1) * (cardWidth + cardSpacing) - 5
+        local y = startY - 5
+        local width = (group.endIndex - group.startIndex + 1) * (cardWidth + cardSpacing) - cardSpacing + 10
+        local height = cardHeight + 10
+        
+        -- 绘制高亮框
+        love.graphics.setColor(1, 1, 0, alpha * 0.7)
+        love.graphics.setLineWidth(3)
+        love.graphics.rectangle("line", x, y, width, height)
         love.graphics.setLineWidth(1)
+        
+        -- 绘制组合效果提示
+        if group.count > 1 then
+            love.graphics.setColor(1, 1, 0, alpha)
+            love.graphics.print("x" .. group.count, x + width - 25, y - 20, 0, 1.2)
+        end
+    end
+end
 
-        -- Draw card name
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.print(flyingCard.card.name, x + 8, y + 8, 0, 1.1)
-
-        -- Draw card description with replaced parameters and text wrapping
-        love.graphics.setColor(0.8, 0.8, 0.8)
-        local description = base_util.replaceParams(flyingCard.card.description, flyingCard.card.args)
-        local descHeight = drawWrappedText(description, x + 8, y + 35, cardWidth - 16, 0.9)
-
-        -- Draw card type (centered and lower)
-        love.graphics.setColor(typeColor)
-        local font = love.graphics.getFont()
-        local typeText = flyingCard.card.type:gsub("^%l", string.upper) -- Capitalize first letter
-        local typeWidth = font:getWidth(typeText) * 0.9
-        love.graphics.print(typeText, x + (cardWidth - typeWidth) / 2, y + 110, 0, 0.9)
+-- 绘制飘字效果
+function battle_ui.drawFloatingTexts(floatingTexts)
+    for _, text in ipairs(floatingTexts) do
+        local alpha = 1 - (text.timer / text.duration)
+        local yOffset = -30 * (text.timer / text.duration)
+        
+        love.graphics.setColor(text.color[1], text.color[2], text.color[3], alpha)
+        love.graphics.print(text.text, text.x, text.y + yOffset, 0, 1.5)
     end
 end
 

@@ -4,14 +4,14 @@ local eventMgr = require "src.manager.event_mgr"
 local effectMgr = {}
 
 function effectMgr.get_target(caster, effect_target)
-    print("Get target:", effect_target, "caster:", caster)
+    print("Get target:", effect_target, "caster:", caster.name)
     if effect_target == "self" then
         local self_target = caster
-        print("Self target:", self_target)
+        print("Self target:", self_target.name)
         return self_target
     elseif effect_target == "enemy" then
         local enemy_target = caster:getEnemy()
-        print("Enemy target:", enemy_target)
+        print("Enemy target:", enemy_target and enemy_target.name or "nil")
         return enemy_target
     end
 end
@@ -21,8 +21,10 @@ function effectMgr.excuteEffect(caster, effectType, effect_target, effectArgs)
     
     -- 触发效果执行前事件
     eventMgr.emit("effect_before_" .. effectType, {
-        caster = caster,
-        target = target,
+        casterId = caster:getId(),
+        casterType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
         effectType = effectType,
         effectArgs = effectArgs
     })
@@ -44,8 +46,10 @@ function effectMgr.excuteEffect(caster, effectType, effect_target, effectArgs)
     
     -- 触发效果执行后事件
     eventMgr.emit("effect_after_" .. effectType, {
-        caster = caster,
-        target = target,
+        casterId = caster:getId(),
+        casterType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
         effectType = effectType,
         effectArgs = effectArgs
     })
@@ -56,8 +60,10 @@ function effectMgr.damage(caster, target, effectArgs)
     
     -- 触发伤害前事件，允许修改伤害值
     local eventData = {
-        source = caster,
-        target = target,
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
         damage = damage
     }
     
@@ -71,17 +77,28 @@ function effectMgr.damage(caster, target, effectArgs)
     -- 应用可能被修改的伤害值
     -- 注意：力量属性的加成现在在applyDamage方法中处理
     target:applyDamage(eventData.damage, caster)
+    
+    -- 触发伤害后事件
+    eventMgr.emit(global.events.AFTER_DAMAGE_DEALT, {
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
+        damage = eventData.damage
+    })
 end
 
 function effectMgr.block(caster, target, effectArgs)
     local blockAmount = effectArgs[1]
-    print("Block effect:", blockAmount, "target:", target, "caster:", caster)
+    print("Block effect:", blockAmount, "target:", target.name, "caster:", caster.name)
     
     if type(blockAmount) == "number" then
         -- 触发获得格挡前事件，允许buff修改格挡值
         local eventData = {
-            source = caster,
-            target = target,
+            sourceId = caster:getId(),
+            sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+            targetId = target:getId(),
+            targetType = target:getCamp() == global.camp.player and "player" or "monster",
             blockAmount = blockAmount
         }
         
@@ -89,13 +106,45 @@ function effectMgr.block(caster, target, effectArgs)
         
         -- 应用可能被修改的格挡值
         target:applyBlock(caster, eventData.blockAmount)
+        
+        -- 触发获得格挡后事件
+        eventMgr.emit(global.events.AFTER_BLOCK_GAINED, {
+            sourceId = caster:getId(),
+            sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+            targetId = target:getId(),
+            targetType = target:getCamp() == global.camp.player and "player" or "monster",
+            blockAmount = eventData.blockAmount
+        })
     else
         print("Warning: Invalid block amount:", blockAmount)
     end
 end
 
 function effectMgr.heal(caster, target, effectArgs)
-    target:applyHeal(caster, effectArgs[1])
+    local healAmount = effectArgs[1]
+    
+    -- 触发治疗前事件
+    local eventData = {
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
+        healAmount = healAmount
+    }
+    
+    eventMgr.emit(global.events.BEFORE_HEAL, eventData)
+    
+    -- 应用治疗
+    target:applyHeal(caster, eventData.healAmount)
+    
+    -- 触发治疗后事件
+    eventMgr.emit(global.events.AFTER_HEAL, {
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
+        healAmount = eventData.healAmount
+    })
 end
 
 function effectMgr.add_buff(caster, target, effectArgs)
@@ -116,8 +165,32 @@ function effectMgr.add_buff(caster, target, effectArgs)
         return
     end
     
+    -- 触发添加buff前事件
+    local eventData = {
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
+        buffRef = buffRef
+    }
+    
+    eventMgr.emit(global.events.BEFORE_BUFF_ADDED, eventData)
+    
     -- 添加buff
-    target.buffMgr:addBuff(buffRef, caster)
+    local addedBuff = target.buffMgr:addBuff(buffRef, caster)
+    
+    -- 触发添加buff后事件
+    if addedBuff then
+        eventMgr.emit(global.events.AFTER_BUFF_ADDED, {
+            sourceId = caster:getId(),
+            sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+            targetId = target:getId(),
+            targetType = target:getCamp() == global.camp.player and "player" or "monster",
+            buffId = addedBuff.id,
+            buffType = addedBuff.buff_type,
+            buffName = addedBuff.name
+        })
+    end
 end
 
 -- 增加力量效果
@@ -129,8 +202,29 @@ function effectMgr.add_strength(caster, target, effectArgs)
         return
     end
     
+    -- 触发增加力量前事件
+    local eventData = {
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
+        amount = amount
+    }
+    
+    eventMgr.emit(global.events.BEFORE_STRENGTH_CHANGED, eventData)
+    
     -- 添加力量
-    target:addStrength(amount)
+    target:addStrength(eventData.amount)
+    
+    -- 触发增加力量后事件
+    eventMgr.emit(global.events.AFTER_STRENGTH_CHANGED, {
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
+        amount = eventData.amount,
+        newValue = target:getStrength()
+    })
 end
 
 -- 增加戒备效果
@@ -142,8 +236,29 @@ function effectMgr.add_dexterity(caster, target, effectArgs)
         return
     end
     
+    -- 触发增加戒备前事件
+    local eventData = {
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
+        amount = amount
+    }
+    
+    eventMgr.emit(global.events.BEFORE_DEXTERITY_CHANGED, eventData)
+    
     -- 添加戒备
-    target:addDexterity(amount)
+    target:addDexterity(eventData.amount)
+    
+    -- 触发增加戒备后事件
+    eventMgr.emit(global.events.AFTER_DEXTERITY_CHANGED, {
+        sourceId = caster:getId(),
+        sourceType = caster:getCamp() == global.camp.player and "player" or "monster",
+        targetId = target:getId(),
+        targetType = target:getCamp() == global.camp.player and "player" or "monster",
+        amount = eventData.amount,
+        newValue = target:getDexterity()
+    })
 end
 
 return effectMgr
