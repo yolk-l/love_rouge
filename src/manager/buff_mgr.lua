@@ -92,9 +92,7 @@ function mt:addBuff(buffRef, source)
     -- 触发buff添加事件
     eventMgr.emit(global.events.BUFF_ADDED, {
         targetId = self.owner:getId(),
-        targetType = self.owner:getCamp() == global.camp.player and "player" or "monster",
         sourceId = source:getId(),
-        sourceType = source:getCamp() == global.camp.player and "player" or "monster",
         buffId = newBuff.id,
         buffType = newBuff.buff_type,
         buffName = newBuff.name
@@ -130,7 +128,6 @@ function mt:checkBuffTriggers(event, eventData)
                         -- 触发buff移除事件
                         eventMgr.emit(global.events.BUFF_REMOVED, {
                             targetId = self.owner:getId(),
-                            targetType = self.owner:getCamp() == global.camp.player and "player" or "monster",
                             buffId = buff.id,
                             buffType = buff.buff_type,
                             buffName = buff.name
@@ -258,7 +255,6 @@ function mt:removeAllBuffs()
         -- 触发buff移除事件
         eventMgr.emit(global.events.BUFF_REMOVED, {
             targetId = self.owner:getId(),
-            targetType = self.owner:getCamp() == global.camp.player and "player" or "monster",
             buffId = buff.id,
             buffType = buff.buff_type,
             buffName = buff.name

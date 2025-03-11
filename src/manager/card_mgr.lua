@@ -215,7 +215,6 @@ function mt:executeCardGroup(cardGroup)
         
         -- 使用ID而不是对象引用
         local targetId = target:getId()
-        local targetType = target:getCamp() == global.camp.player and "player" or "monster"
         
         -- 触发卡牌效果事件
         eventMgr.emit(global.events.CARD_EFFECT_APPLIED, {
@@ -224,9 +223,7 @@ function mt:executeCardGroup(cardGroup)
             cardData = self:getCardData(cardData),
             cardCount = count,
             sourceId = global.player:getId(),
-            sourceType = "player",
             targetId = targetId,
-            targetType = targetType
         })
         
         effectMgr.excuteEffect(caster, effectType, effect_target, effectArgs)

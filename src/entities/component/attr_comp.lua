@@ -3,54 +3,6 @@ local eventMgr = require "src.manager.event_mgr"
 
 local mt = {}
 
-function mt:applyDamage(damage, source)
-    -- 计算实际伤害
-    local actualDamage = damage
-    
-    -- 如果有力量属性，增加伤害
-    if source then
-        -- 使用注入方式检查力量属性
-        local strength = source.strength or 0
-        if strength ~= 0 then
-            actualDamage = actualDamage + strength
-        end
-    end
-    
-    -- 如果有格挡，减少伤害
-    if self.block > 0 then
-        if actualDamage <= self.block then
-            self.block = self.block - actualDamage
-            actualDamage = 0
-        else
-            actualDamage = actualDamage - self.block
-            self.block = 0
-        end
-    end
-    
-    -- 应用伤害
-    if actualDamage > 0 then
-        self.health = self.health - actualDamage
-        -- 触发受伤事件
-        eventMgr.emit(global.events.CHARACTER_DAMAGED, {
-            target = self,
-            source = source,
-            damage = damage,
-            damageTaken = actualDamage,
-            blocked = damage - actualDamage
-        })
-    end
-    
-    -- 如果生命值降至0或以下，触发击败事件
-    if self.health <= 0 then
-        eventMgr.emit(global.events.CHARACTER_DEFEATED, {
-            target = self,
-            source = source
-        })
-    end
-    
-    return actualDamage
-end
-
 function mt:applyBlock(caster, block)
     print("applyBlock", self:getCamp(), caster:getCamp(), block)
     local originalBlock = self.block
@@ -149,12 +101,24 @@ function mt:getHealth()
     return self.health
 end
 
+function mt:setHealth(health)
+    self.health = health
+end
+
+
 function mt:getMaxHealth()
     return self.maxHealth
 end
 
+function mt:setMaxHealth(maxHealth)
+    self.maxHealth = maxHealth
+end
 function mt:getBlock()
     return self.block
+end
+
+function mt:setBlock(block)
+    self.block = block
 end
 
 function mt:getCamp()
