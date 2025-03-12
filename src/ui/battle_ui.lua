@@ -235,6 +235,20 @@ function battle_ui.drawCards(cards)
         local typeText = card.type:gsub("^%l", string.upper) -- Capitalize first letter
         local typeWidth = font:getWidth(typeText) * 0.9
         love.graphics.print(typeText, x + (cardWidth - typeWidth) / 2, y + 110, 0, 0.9)
+        
+        -- 如果卡牌被锁定，绘制锁定图标
+        if card.locked then
+            love.graphics.setColor(1, 1, 1, 0.8)
+            -- 绘制一个简单的锁形状
+            local lockX = x + cardWidth - 20
+            local lockY = y + 10
+            -- 锁的主体
+            love.graphics.rectangle("fill", lockX - 5, lockY + 5, 10, 12)
+            -- 锁的环
+            love.graphics.setLineWidth(2)
+            love.graphics.circle("line", lockX, lockY, 5)
+            love.graphics.setLineWidth(1)
+        end
     end
 end
 
@@ -290,6 +304,36 @@ function battle_ui.drawButtons(generateCardButton, executeCardButton, isReleasin
     end
     generateCardButton:draw()
     executeCardButton:draw()
+    
+    -- 绘制卡牌锁定提示
+    love.graphics.setColor(0.8, 0.8, 0.8)
+    love.graphics.print("右键点击卡牌可以锁定/解锁", 300, 610)
+    love.graphics.print("锁定的卡牌在重新生成时不会被替换", 300, 630)
+end
+
+-- 处理卡牌点击事件
+function battle_ui.handleCardClick(x, y, button, cards)
+    if not cards or #cards == 0 then return nil end
+    
+    local cardWidth = 100
+    local cardHeight = 140
+    local cardSpacing = 15
+    local startX = 30
+    local startY = 400
+    
+    -- 检查点击是否在卡牌区域内
+    for i, card in ipairs(cards) do
+        local cardX = startX + (i - 1) * (cardWidth + cardSpacing)
+        local cardY = startY
+        
+        if x >= cardX and x <= cardX + cardWidth and
+           y >= cardY and y <= cardY + cardHeight then
+            -- 返回被点击的卡牌索引
+            return i
+        end
+    end
+    
+    return nil
 end
 
 return battle_ui 

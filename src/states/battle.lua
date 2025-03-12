@@ -170,6 +170,25 @@ function mt:mousepressed(x, y, button)
     if button == 1 then -- 左键点击
         self.generateCardButton:mousepressed(x, y)
         self.executeCardButton:mousepressed(x, y)
+        
+        -- 处理卡牌点击
+        local cardState = global.cardMgr:getState()
+        if not cardState.isReleasingCards then
+            local clickedCardIndex = battle_ui.handleCardClick(x, y, button, cardState.playerCards)
+            if clickedCardIndex then
+                -- 左键点击可以添加其他功能，如卡牌详情等
+                print("Card clicked: " .. cardState.playerCards[clickedCardIndex].name)
+            end
+        end
+    elseif button == 2 then -- 右键点击
+        -- 处理卡牌锁定/解锁
+        local cardState = global.cardMgr:getState()
+        if not cardState.isReleasingCards then
+            local clickedCardIndex = battle_ui.handleCardClick(x, y, button, cardState.playerCards)
+            if clickedCardIndex then
+                global.cardMgr:toggleCardLock(clickedCardIndex)
+            end
+        end
     end
 end
 

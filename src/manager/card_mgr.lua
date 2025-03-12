@@ -29,8 +29,27 @@ end
 
 -- 生成卡牌
 function mt:generateCards()
+    -- 保存已锁定的卡牌
+    local lockedCards = {}
+    if self.playerCards then
+        for _, card in ipairs(self.playerCards) do
+            if card.locked then
+                table.insert(lockedCards, card)
+            end
+        end
+    end
+    
     self.playerCards = {}
     self.cardCounts = {}
+    
+    -- 首先添加所有已锁定的卡牌
+    for _, lockedCard in ipairs(lockedCards) do
+        table.insert(self.playerCards, lockedCard)
+        self.cardCounts[lockedCard.name] = (self.cardCounts[lockedCard.name] or 0) + 1
+    end
+    
+    -- 计算需要生成的新卡牌数量
+    local newCardsToGenerate = 5 - #lockedCards
     
     -- 使用玩家卡组而不是随机生成
     if #self.deck == 0 then
@@ -42,9 +61,9 @@ function mt:generateCards()
             end
         end
 
-        -- 随机生成5张卡牌
+        -- 随机生成新卡牌
         local randomCards = {}
-        for _ = 1, 5 do
+        for _ = 1, newCardsToGenerate do
             local randomCardName = self.cardNameList[math.random(1, #self.cardNameList)]
             local cardData = table.clone(cards[randomCardName])
             self:assignCardId(cardData)
@@ -52,20 +71,21 @@ function mt:generateCards()
             self.cardCounts[cardData.name] = (self.cardCounts[cardData.name] or 0) + 1
         end
         
-        -- 按卡牌名称排序，使相同卡牌放在一起
-        table.sort(randomCards, function(a, b) return a.name < b.name end)
-        self.playerCards = randomCards
+        -- 将新卡牌添加到玩家卡牌中
+        for _, card in ipairs(randomCards) do
+            table.insert(self.playerCards, card)
+        end
         
         print("Warning: Using random cards because deck is empty")
     else
-        -- 从玩家卡组中随机选择5张卡牌
+        -- 从玩家卡组中随机选择新卡牌
         local deckCopy = {}
         for i, card in ipairs(self.deck) do
             table.insert(deckCopy, {index = i, card = table.clone(card)})
         end
         
-        -- 随机选择5张卡牌，或者全部卡牌如果卡组少于5张
-        local cardCount = math.min(5, #deckCopy)
+        -- 随机选择新卡牌，或者全部卡牌如果卡组少于需要生成的数量
+        local cardCount = math.min(newCardsToGenerate, #deckCopy)
         local randomCards = {}
         for _ = 1, cardCount do
             if #deckCopy > 0 then
@@ -78,12 +98,16 @@ function mt:generateCards()
             end
         end
         
-        -- 按卡牌名称排序，使相同卡牌放在一起
-        table.sort(randomCards, function(a, b) return a.name < b.name end)
-        self.playerCards = randomCards
+        -- 将新卡牌添加到玩家卡牌中
+        for _, card in ipairs(randomCards) do
+            table.insert(self.playerCards, card)
+        end
         
-        print("Generated " .. cardCount .. " cards from player's deck")
+        print("Generated " .. cardCount .. " new cards from player's deck (plus " .. #lockedCards .. " locked cards)")
     end
+    
+    -- 按卡牌名称排序，使相同卡牌放在一起
+    table.sort(self.playerCards, function(a, b) return a.name < b.name end)
     
     -- 生成卡牌组信息，用于显示相同卡牌的组合效果
     self.cardGroups = {}
@@ -113,6 +137,14 @@ end
 -- 开始释放卡牌
 function mt:startReleasingCards()
     if #self.playerCards > 0 then
+        -- 解锁所有卡牌，因为它们将被释放
+        for i, card in ipairs(self.playerCards) do
+            if card.locked then
+                card.locked = false
+                print("Card unlocked before release: " .. card.name)
+            end
+        end
+        
         self.isReleasingCards = true
         self.cardGroups = self.cardGroups or {}
         self.currentGroupIndex = 0
@@ -359,6 +391,7 @@ end
 
 -- 重置卡牌状态
 function mt:reset()
+    -- 不再保存已锁定的卡牌，因为卡牌已经被释放
     self.playerCards = {}
     self.cardCounts = {}
     self.cardGroups = {}
@@ -489,6 +522,49 @@ function mt:getRandomCard(cardType)
     
     print("获取随机卡牌: " .. randomCard.name .. " (键名: " .. randomCardName .. "), 类型: " .. randomCard.type)
     return randomCard
+end
+
+-- 锁定卡牌
+function mt:lockCard(cardIndex)
+    if not self.playerCards or not self.playerCards[cardIndex] then
+        print("Warning: Cannot lock card at index " .. cardIndex .. ", card not found")
+        return false
+    end
+    
+    self.playerCards[cardIndex].locked = true
+    print("Card locked: " .. self.playerCards[cardIndex].name)
+    return true
+end
+
+-- 解锁卡牌
+function mt:unlockCard(cardIndex)
+    if not self.playerCards or not self.playerCards[cardIndex] then
+        print("Warning: Cannot unlock card at index " .. cardIndex .. ", card not found")
+        return false
+    end
+    
+    self.playerCards[cardIndex].locked = false
+    print("Card unlocked: " .. self.playerCards[cardIndex].name)
+    return true
+end
+
+-- 切换卡牌锁定状态
+function mt:toggleCardLock(cardIndex)
+    if not self.playerCards or not self.playerCards[cardIndex] then
+        print("Warning: Cannot toggle card lock at index " .. cardIndex .. ", card not found")
+        return false
+    end
+    
+    local card = self.playerCards[cardIndex]
+    card.locked = not card.locked
+    
+    if card.locked then
+        print("Card locked: " .. card.name)
+    else
+        print("Card unlocked: " .. card.name)
+    end
+    
+    return true
 end
 
 local CardMgr = {}

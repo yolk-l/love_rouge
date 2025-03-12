@@ -98,7 +98,7 @@ function mt:generateMap()
         end
         nextRowStart = currentRowEnd + 1
         nextRowEnd = nextRowStart + nodesPerRow[row + 1] - 1
-        
+    
         -- Connect current row and next row nodes
         for i = currentRowStart, currentRowEnd do
             for j = nextRowStart, nextRowEnd do
@@ -133,10 +133,9 @@ function mt:load(params)
         -- Update current accessible row
         self.currentRow = self.map[self.currentBattleNodeIndex].row + 1
         self.currentBattleNodeIndex = nil
-    elseif not self.map or #self.map == 0 then
+    elseif not self.map or #self.map == 0 or (params and params.restart) then
         -- First load or restart game, generate map
-        self.map = {}
-        self:generateMap()
+        self:reset()
     end
 end
 
@@ -270,6 +269,18 @@ function mt:mousemoved(x, y, dx, dy)
         local maxOffset = 0 -- Maximum downward drag of 0 pixels
         self.mapOffsetY = math.max(minOffset, math.min(maxOffset, self.mapOffsetY))
     end
+end
+
+function mt:reset()
+    self.map = {}
+    self:generateMap()
+    self.currentBattleNodeIndex = nil
+    self.currentRow = 1
+    self.selectedNodeInRow = {}
+    self.selectedNodes = {}
+    self.lastMouseY = 0
+    self.isDragging = false
+    self.mapOffsetY = 0
 end
 
 local Map = {}
