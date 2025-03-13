@@ -64,13 +64,20 @@ end
 -- 初始化玩家卡组
 function mt:initDeck()
     -- 添加初始卡牌
+    local init_cards = {
+        ["Strike"] = 5,
+        ["ComboStrike"] = 5,
+        ["Defend"] = 5,
+        ["IronArmor"] = 5,
+        ["Agility"] = 2,
+        ["Strengthen"] = 2,
+    }
     print("初始化玩家卡组...")
-    global.cardMgr:addCardToDeck("Strike")
-    global.cardMgr:addCardToDeck("Strike")
-    global.cardMgr:addCardToDeck("Strike")
-    global.cardMgr:addCardToDeck("Defend")
-    global.cardMgr:addCardToDeck("Defend")
-    global.cardMgr:addCardToDeck("Defend")
+    for card_name, count in pairs(init_cards) do
+        for _ = 1, count do
+            global.cardMgr:addCardToDeck(card_name)
+        end
+    end
     print("玩家卡组初始化完成，卡组大小: " .. #global.cardMgr:getDeck())
 end
 

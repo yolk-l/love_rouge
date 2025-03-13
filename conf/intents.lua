@@ -5,7 +5,7 @@ local intents = {
         name = "Attack",
         description = "Deal [arg1] damage after taking [arg2] damage",
         type = "attack",
-        args = { arg1 = 15, arg2 = 1 },
+        args = { arg1 = 6, arg2 = 1 },
         effect_list = {
             {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
@@ -20,7 +20,7 @@ local intents = {
         name = "Strong Attack",
         description = "Deal [arg1] damage after taking [arg2] damage",
         type = "attack",
-        args = { arg1 = 30, arg2 = 1 },
+        args = { arg1 = 12, arg2 = 1 },
         effect_list = {
             {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
@@ -35,7 +35,7 @@ local intents = {
         name = "Very Strong Attack",
         description = "Deal [arg1] damage after taking [arg2] damage",
         type = "attack",
-        args = { arg1 = 45, arg2 = 1 },
+        args = { arg1 = 18, arg2 = 1 },
         effect_list = {
             {effect_type ="damage", effect_target = "enemy", effect_args = {"arg1"} },
         },
@@ -151,8 +151,8 @@ local intents = {
         args = { arg1 = 2 },
         effect_list = {
             {
-                effect_type = "add_strength", 
-                effect_target = "self", 
+                effect_type = "add_strength",
+                effect_target = "self",
                 effect_args = {"arg1"}
             }
         },
@@ -171,8 +171,8 @@ local intents = {
         args = { arg1 = 2 },
         effect_list = {
             {
-                effect_type = "add_dexterity", 
-                effect_target = "self", 
+                effect_type = "add_dexterity",
+                effect_target = "self",
                 effect_args = {"arg1"}
             }
         },
@@ -191,8 +191,8 @@ local intents = {
         args = { arg1 = 2 },
         effect_list = {
             {
-                effect_type = "add_strength", 
-                effect_target = "enemy", 
+                effect_type = "add_strength",
+                effect_target = "enemy",
                 effect_args = {"-arg1"}
             }
         },

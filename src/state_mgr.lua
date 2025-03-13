@@ -4,6 +4,7 @@ local gameOver = require "src.states.game_over"
 local start = require "src.states.start"
 local shop = require "src.states.shop"
 local event = require "src.states.event"
+local battleReward = require "src.states.battle_reward"
 
 local mt = {}
 mt.__index = mt
@@ -29,6 +30,8 @@ function mt:changeState(newState, params)
             self.states.shop = shop.new()
         elseif newState == "event" then
             self.states.event = event.new()
+        elseif newState == "battle_reward" then
+            self.states.battle_reward = battleReward.new()
         end
     end
     if self.currentState and self.states[self.currentState].exit then

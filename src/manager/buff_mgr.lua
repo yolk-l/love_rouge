@@ -285,4 +285,4 @@ function BuffMgr.new(owner)
     return instance
 end
 
-return BuffMgr 
+return BuffMgr

@@ -122,8 +122,9 @@ function mt:update(dt)
                     sourceId = global.player:getId(),
                     sourceType = "player"
                 })
-                global.stateMgr:changeState("map", {
-                    completeBattleNode = true
+                -- 转到奖励状态而不是直接返回地图
+                global.stateMgr:changeState("battle_reward", {
+                    battleType = self.battleType
                 })
             elseif battleResult == global.battle_result.monster_win then
                 print("Player lost!")
